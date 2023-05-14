@@ -18,6 +18,7 @@
 # misc
 .DS_Store
 *.pem
+token.json
 
 # debug
 npm-debug.log*
@@ -33,3 +34,14 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+.env
+.token.json
+.env
+.env
+token.json
+token.json
+credentials.json
+
+.*
+credentials.json
