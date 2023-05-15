@@ -1,5 +1,6 @@
+import { Auth } from 'googleapis';
+import { AuthForm } from '@/components/auth';
 import {CalendarApp} from '../components/calendar';
-import Image from 'next/image'
 
 // Import the functions you need from the SDKs you need
 
@@ -7,6 +8,14 @@ import Image from 'next/image'
 
 
 export default function Home() {
-  return <CalendarApp />
+
+
+  return( <div>
+    <div>
+      <AuthForm/>
+  </div>
+  <CalendarApp/>
+  </div>
+  )
     
 }

@@ -91,3 +91,7 @@ export async function listEvents(auth:Auth.OAuth2Client) {
   });
 }
 
+async function main(){
+  const r = await authorize()
+  console.log(r)
+}

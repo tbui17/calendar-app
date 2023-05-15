@@ -1,12 +1,9 @@
-import 'firebase/firestore'
-import 'firebase/auth'
-
-import { GoogleAuthProvider, getAuth } from 'firebase/auth';
-
+import dotenv from 'dotenv'
+import { getAuth } from "firebase/auth";
 import {getFirestore} from "firebase/firestore"
 import { initializeApp } from "firebase/app";
-import { useAuthState } from 'react-firebase-hooks/auth'
-import { useCollectionData } from 'react-firebase-hooks/firestore'
+
+dotenv.config()
 
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -25,7 +22,12 @@ const firebaseConfig = {
     measurementId: process.env.MEASUREMENTID,
   };
   
+  
   // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-
 export const db = getFirestore(app)
+// Initialize the FirebaseUI Widget using Firebase.
+
+
+
+export const auth = getAuth(app);
