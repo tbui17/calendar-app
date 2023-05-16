@@ -12,6 +12,10 @@ export const AuthForm = () => {
 		axios.post("/api/auth", { email, password })
 	}
 
+    async function googleSignIn(){
+        
+    }
+
 	return (
 		<div>
 			<input
@@ -28,6 +32,7 @@ export const AuthForm = () => {
 				type="password"
 			/>
 			<button onClick={signIn}>Sign in</button>
+            <button onClick={googleSignIn}></button>
 		</div>
 	);
 };
