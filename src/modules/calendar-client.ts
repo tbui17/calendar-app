@@ -1,7 +1,7 @@
 import { Auth, calendar_v3, google } from "googleapis";
 
 import { GaxiosResponse } from "gaxios";
-import { authorize } from "./google-api-auth";
+import { authorize } from "../backend/modules/google-api-auth";
 
 export type Schema$Event = calendar_v3.Schema$Event;
 export type Schema$Events = calendar_v3.Schema$Events;
@@ -19,6 +19,9 @@ export class TransformedEvent {
 		public description?: string | null | undefined
 	) {}
 }
+
+
+
 
 export class CalendarClient {
 	public cal: calendar_v3.Calendar;

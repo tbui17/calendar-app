@@ -1,4 +1,4 @@
-import { CalendarClient, Schema$Event, TransformedEvent } from "@/modules/client";
+import { CalendarClient, Schema$Event, TransformedEvent } from "@/modules/calendar-client";
 
 import { INextResponse } from '../../../modules/types';
 import { NextResponse } from "next/server";

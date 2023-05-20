@@ -1,10 +1,13 @@
-import { GoogleAuthProvider, getAuth } from "firebase/auth";
-
 import dotenv from 'dotenv'
+import {getAuth} from "firebase/auth";
 import {getFirestore} from "firebase/firestore"
 import { initializeApp } from "firebase/app";
 
 dotenv.config()
+
+
+
+
 
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries

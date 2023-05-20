@@ -1,15 +1,14 @@
 "use client";
 
-import { CalendarClient, TransformedEvent } from "@/modules/client";
+import { CalendarClient, TransformedEvent } from "@/modules/calendar-client";
 import { ICalendarData, INextResponse } from "@/modules/types";
 import React, { useState } from "react";
-import { addDoc, collection, getDocs, updateDoc } from "firebase/firestore";
 import interactionPlugin, { DateClickArg } from "@fullcalendar/interaction"; // needed for dayClick
 
 import FullCalendar from "@fullcalendar/react"; // must go before plugins
 import axios from "axios";
 import dayGridPlugin from "@fullcalendar/daygrid"; // a plugin!
-import { db } from "../modules/firebase-setup";
+import { db } from "../backend/modules/firebase-setup";
 
 const getDataEndpoint = "api/getData";
 export const CalendarApp = () => {
