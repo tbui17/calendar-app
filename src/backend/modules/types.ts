@@ -1,9 +1,10 @@
-import { DocumentData } from "firebase/firestore";
 import { Auth } from "googleapis";
+import { DocumentData } from "firebase/firestore";
 
 export type IUser = {
 	email: string;
 	refresh_token: string;
+	userId: string;
 };
 
 export type ICredentials = {
@@ -31,4 +32,15 @@ export type ClientCodeResponse = {
 	tokens: Auth.Credentials
 	client: Auth.OAuth2Client
 	
+}
+
+export type getTokenRequest = {
+	userId:string
+	code:string
+}
+
+export type userTokenRequest = {
+	userId:string
+	refreshToken:string
+	accessToken:string|undefined
 }

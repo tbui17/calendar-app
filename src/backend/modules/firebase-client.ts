@@ -24,6 +24,10 @@ export class QueryParams {
 	static fromUserEmail(email: string, operator: WhereFilterOp = "=="): QueryParams {
 		return new QueryParams("users", "email", operator, email);
 	}
+
+	static fromUserId(id: string, operator: WhereFilterOp = "=="): QueryParams {
+		return new QueryParams("users", "userId", operator, id);
+	}
 }
 
 class FirebaseClient {
@@ -66,6 +70,17 @@ class FirebaseClient {
 
 		// Set/update the refreshToken for the user
 		await setDoc(docRef, data, { merge: true });
+		return true
+	}
+
+	async storeTokenInDb(accessToken:string, refreshToken:string, userId:string){
+		const res = await this.queryDb(QueryParams.fromUserId(userId))
+		const docId = res?.documentId
+		if (!docId){
+			throw new Error("No user found")
+		}
+		await this.createOrUpdate("users", docId, {refresh_token:refreshToken, access_token:accessToken, userId:userId})
+		return true
 	}
 }
 

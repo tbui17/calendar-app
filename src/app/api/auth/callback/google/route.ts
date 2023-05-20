@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { QueryParams, fbClient } from "@/backend/modules/firebase-client";
+import { getTokenIntoClient, makeOAuth2Client } from "@/backend/modules/google-api-auth";
+
 import { auth } from "@/backend/modules/firebase-setup";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { createOAuth2ClientWithCode, makeOAuth2Client } from "@/backend/modules/google-api-auth";
 
 export async function GET(request: NextRequest) {
 
@@ -15,17 +17,11 @@ export async function GET(request: NextRequest) {
             result: {message: "Code could not be obtained."}
         })
     }
-
-    //auth handling
-    const oauthclient = makeOAuth2Client()
-    const {tokens} = await createOAuth2ClientWithCode(code, oauthclient)
     
-    
-
     // success response
     return NextResponse.json({
         status: 200,
-        result: {message: "Successfully obtained code."}
+        result: {code: code}
     })
     
 

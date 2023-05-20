@@ -7,5 +7,5 @@ export async function POST(request: Request) {
     const {email, password} = await request.json()
     
     await createUserWithEmailAndPassword(auth, email, password);
-    return NextResponse.json({result: `Successfully created ${email} user.` , status:200},)
+    return NextResponse.json({result: `Successfully created ${email} user.` , status:200})
 }

@@ -3,7 +3,7 @@ import { CalendarClient, Schema$Event, TransformedEvent } from "@/modules/calend
 import { INextResponse } from '../../../modules/types';
 import { NextResponse } from "next/server";
 
-export async function POST(request: Request) {
+export async function GET(request: Request) {
 	const c = await CalendarClient.fromDefault();
 	const res = await c.getAllEvents();
     if (!res){

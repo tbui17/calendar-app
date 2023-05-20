@@ -13,10 +13,14 @@ import { QueryParams, fbClient } from "./firebase-client";
 import { OAuth2Client } from "google-auth-library";
 import { TEST_USER } from "./test-data";
 import { authenticate } from "@google-cloud/local-auth";
+import axios from "axios";
 import { db } from "./firebase-setup";
+import dotenv from 'dotenv'
 import http from "http";
 import open from "open";
 import url from "url";
+
+dotenv.config()
 
 enum ScopeList {
 	// https://developers.google.com/identity/protocols/oauth2/scopes Calendar API, v3
@@ -53,7 +57,7 @@ export function generateAuthUrl(oAuth2Client:OAuth2Client){
 	return authorizeUrl
 }
 
-export async function createOAuth2ClientWithCode(code:string, client:OAuth2Client){
+export async function getTokenIntoClient(code:string, client:OAuth2Client){
 	const tokenResponse = await client.getToken(code)
 	const {tokens} = tokenResponse
 	client.setCredentials(tokens)
@@ -73,6 +77,7 @@ export function getAuthenticatedClient(){
 			access_type: "offline",
 			scope: ["https://www.googleapis.com/auth/userinfo.profile"],
 		});
+
 		
 		
 	};
@@ -174,7 +179,8 @@ export async function authorize() {
 	// 	scopes: SCOPES,
 	// 	keyfilePath: CREDENTIALS_PATH,
 	// });
-	return await getAuthenticatedClient();
+	
+	
 }
 
 // export async function authorizeUser(email: string) {
@@ -219,9 +225,9 @@ async function listEvents(auth: Auth.OAuth2Client) {
 }
 
 async function main() {
-	const client = makeOAuth2Client()	
+	const client = makeOAuth2Client()
 	const r = await generateAuthUrl(client)
 	console.log(r)
+	// const r2 = await getTokenIntoClient("4/0AbUR2VP5LfMqCo5ZgbzzP47MzdUeZgH5MILWEAlQxgiiTDLJNhZli6tqVTjE-nNcb8Hnlg", client)
+	// const r3 = r2.tokens
 }
-
-main();

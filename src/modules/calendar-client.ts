@@ -91,10 +91,7 @@ export class CalendarClient {
 		return transformedEvents;
 	}
 
-	static async fromDefault() {
-		const auth = await authorize();
-		return new CalendarClient(auth);
-	}
+
 }
 function handleResponse(res: GaxiosResponse<Schema$Events>) {
 	const events = res.data.items;
@@ -104,12 +101,5 @@ function handleResponse(res: GaxiosResponse<Schema$Events>) {
 	}
 	return events;
 }
-export async function createClient() {
-	const auth = await authorize();
-	return new CalendarClient(auth);
-}
 
-async function main() {
-	const c = new CalendarClient(await authorize());
-	c.listEvents();
-}
+
