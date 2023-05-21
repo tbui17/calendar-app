@@ -1,6 +1,8 @@
 import { Auth, calendar_v3, google } from "googleapis";
+import { FirebaseClient, QueryParams, fbClient } from "@/backend/modules/firebase-client";
 
 import { GaxiosResponse } from "gaxios";
+import { IUserDataResponse } from "@/backend/modules/types";
 import { authorize } from "../backend/modules/google-api-auth";
 
 export type Schema$Event = calendar_v3.Schema$Event;
@@ -91,7 +93,10 @@ export class CalendarClient {
 		return transformedEvents;
 	}
 
-
+	static async fromUserId(userId:string){
+		const r = await authorize(userId)
+		return new this(r)
+	}
 }
 function handleResponse(res: GaxiosResponse<Schema$Events>) {
 	const events = res.data.items;
@@ -99,6 +104,7 @@ function handleResponse(res: GaxiosResponse<Schema$Events>) {
 		console.log("No event found.");
 		return;
 	}
+	
 	return events;
 }
 

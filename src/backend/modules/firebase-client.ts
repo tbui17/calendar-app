@@ -30,7 +30,7 @@ export class QueryParams {
 	}
 }
 
-class FirebaseClient {
+export class FirebaseClient {
 	db: Firestore;
 	constructor() {
 		this.db = db;

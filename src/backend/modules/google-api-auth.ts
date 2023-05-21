@@ -89,13 +89,13 @@ export function getAuthenticatedClient(){
  *
  * @return {Promise<OAuth2Client|null>}
  */
-async function loadSavedCredentialsIfExist() {
+export async function loadSavedCredentialsIfExist(userId:string) {
 	try {
 		const usersRef = await fireDb.collection(db, "users");
 
 		const query = await fireDb.query(
 			usersRef,
-			fireDb.where("email", "==", TEST_USER)
+			fireDb.where("userId", "==", userId)
 		);
 		const querySnap = await fireDb.getDocs(query);
 		const user = querySnap.docs[0];
@@ -170,11 +170,12 @@ async function saveCredentials(userId: string, client: any) {
  * Load or request or authorization to call APIs.
  *
  */
-export async function authorize() {
-	// let client = await loadSavedCredentialsIfExist();
-	// if (client) {
-	// 	return client as Auth.OAuth2Client;
-	// }
+export async function authorize(userId:string) {
+	let client = await loadSavedCredentialsIfExist(userId);
+	if (client) {
+		return client as Auth.OAuth2Client;
+	}
+	throw new Error ("No client")
 	// const client2 = await authenticate({
 	// 	scopes: SCOPES,
 	// 	keyfilePath: CREDENTIALS_PATH,

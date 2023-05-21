@@ -5,6 +5,7 @@ export type IUser = {
 	email: string;
 	refresh_token: string;
 	userId: string;
+	access_token:string;
 };
 
 export type ICredentials = {
