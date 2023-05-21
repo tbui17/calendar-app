@@ -16,16 +16,27 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
+import { GoogleSignInButton } from "./google-signin";
 import axios from "axios";
 import { useState } from "react";
 import { userTokenRequest } from "@/backend/modules/types";
 
+declare let google:any
 export const AuthForm = () => {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	async function signIn() {
 		axios.post("/api/auth", { email, password });
 	}
+	
+	React.useEffect(() => {
+		
+		google.accounts.id.initialize(
+			{
+				
+			}
+		)
+	})
 
 	const [open, setOpen] = React.useState(false);
 
@@ -50,7 +61,7 @@ export const AuthForm = () => {
 			accessToken,
 			userId,
 		};
-		console.log(req)
+		console.log(req);
 		await axios.post("/api/db/storeToken", req, { withCredentials: true });
 		handleClickOpen();
 	}
@@ -88,6 +99,8 @@ export const AuthForm = () => {
 
 	return (
 		<div>
+			
+			<script src="https://accounts.google.com/gsi/client" async defer></script>
 			{dialog}
 			<input
 				placeholder="email"
@@ -111,6 +124,7 @@ export const AuthForm = () => {
 			>
 				Sign In
 			</button>
+			<GoogleSignInButton />
 			{/* <button className="bg-slate-500" title="sign in" onClick={googleSignIn}></button> */}
 			<button onClick={logout}>Log out</button>
 

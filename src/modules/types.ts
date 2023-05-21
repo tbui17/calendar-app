@@ -8,3 +8,5 @@ export type ICalendarData = {
     date:string;
     description?:string
 }
+
+console.log(process.env.NEXT_TEST)

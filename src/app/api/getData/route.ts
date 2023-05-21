@@ -4,7 +4,7 @@ import { INextResponse } from '../../../modules/types';
 import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
-	const c = await CalendarClient.fromDefault();
+	const c = await CalendarClient.fromUserId("asd");
 	const res = await c.getAllEvents();
     if (!res){
         console.log("No events")

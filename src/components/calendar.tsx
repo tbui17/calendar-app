@@ -16,6 +16,8 @@ export const CalendarApp = () => {
 		{ title: "event 1", date: "2023-04-06" },
 		{ title: "event 2", date: "2023-04-05" },
 	]);
+	
+
 
 	const handleDateClick = (arg: DateClickArg) => {
 		// bind with an arrow function
@@ -23,7 +25,7 @@ export const CalendarApp = () => {
 	};
 	const handleSyncClick = async () => {
 		console.log("Retrieving data...");
-		const res = await axios.post(getDataEndpoint);
+		const res = await axios.get(getDataEndpoint,{params: {userId: "asd"}});
 		const results: INextResponse<TransformedEvent[]> = res.data;
 		const results2: TransformedEvent[] = results.result;
 		const transformedResult: ICalendarData[] = [];
@@ -40,6 +42,7 @@ export const CalendarApp = () => {
         description: result.description,
 			});
 		}
+	
     setEvents(transformedResult);
 	};
 
