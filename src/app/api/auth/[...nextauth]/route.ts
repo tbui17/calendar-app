@@ -1,8 +1,8 @@
 import GoogleProvider from "next-auth/providers/google";
 import NextAuth from "next-auth"
 
-const clientId = process.env.GOOGLE_ID
-const clientSecret = process.env.GOOGLE_SECRET
+const clientId = process.env.NEXT_GOOGLE_ID
+const clientSecret = process.env.NEXT_GOOGLE_SECRET
 
 if (!clientId || !clientSecret) {
     throw new Error(
@@ -25,7 +25,7 @@ export const authOptions = {
       }
     })
   ],
-  secret: process.env.JWT_SECRET,
+  secret: process.env.NEXT_JWT_SECRET,
 }
 const handler = NextAuth(authOptions)
 

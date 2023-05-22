@@ -6,12 +6,6 @@ import { GoogleOAuthProvider } from '@react-oauth/google'
 import { Inter } from 'next/font/google'
 import Provider from '@/components/Provider'
 
-const client_id = process.env.CLIENT_ID as string
-if (!client_id){
-  throw new Error('No client id')
-}
-
-
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata = {
@@ -28,7 +22,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         {/* <Provider> */}
-        <GoogleOAuthProvider clientId = {client_id}>
+        <GoogleOAuthProvider clientId = "487907259037-ehfsca6qka0h03htldacga4n9gdul6ir.apps.googleusercontent.com">
         <main>{children}</main>
         </GoogleOAuthProvider>
         {/* </Provider> */}

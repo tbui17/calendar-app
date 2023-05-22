@@ -8,7 +8,6 @@ import {
 	signInWithPopup,
 	signOut,
 } from "firebase/auth";
-import { auth, googleProvider } from "src/backend/modules/firebase-setup";
 
 import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
@@ -21,22 +20,26 @@ import axios from "axios";
 import { useState } from "react";
 import { userTokenRequest } from "@/backend/modules/types";
 
-declare let google:any
+// import { auth, googleProvider } from "src/backend/modules/firebase-setup";
+
+
+
+
+
+
+
+
+
+
+
+
+
 export const AuthForm = () => {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 	async function signIn() {
 		axios.post("/api/auth", { email, password });
 	}
-	
-	React.useEffect(() => {
-		
-		google.accounts.id.initialize(
-			{
-				
-			}
-		)
-	})
 
 	const [open, setOpen] = React.useState(false);
 
@@ -48,29 +51,29 @@ export const AuthForm = () => {
 		setOpen(false);
 	};
 
-	async function googleSignIn() {
-		const res = await signInWithPopup(auth, googleProvider);
-		const { refreshToken } = res.user;
-		const r = GoogleAuthProvider.credentialFromResult(res);
-		const accessToken = r?.accessToken;
+	// async function googleSignIn() {
+	// 	const res = await signInWithPopup(auth, googleProvider);
+	// 	const { refreshToken } = res.user;
+	// 	const r = GoogleAuthProvider.credentialFromResult(res);
+	// 	const accessToken = r?.accessToken;
 
-		const userId = res.user.uid;
+	// 	const userId = res.user.uid;
 
-		const req: userTokenRequest = {
-			refreshToken,
-			accessToken,
-			userId,
-		};
-		console.log(req);
-		await axios.post("/api/db/storeToken", req, { withCredentials: true });
-		handleClickOpen();
-	}
+	// 	const req: userTokenRequest = {
+	// 		refreshToken,
+	// 		accessToken,
+	// 		userId,
+	// 	};
+	// 	console.log(req);
+	// 	await axios.post("/api/db/storeToken", req, { withCredentials: true });
+	// 	handleClickOpen();
+	// }
 
-	async function logout() {
-		await signOut(auth);
-	}
+	// async function logout() {
+	// 	await signOut(auth);
+	// }
 
-	console.log(auth.currentUser?.email);
+	
 
 	const dialog = (
 		<div>
@@ -118,15 +121,15 @@ export const AuthForm = () => {
 				type="password"
 			/>
 
-			<button
+			{/* <button
 				onClick={googleSignIn}
 				className="focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
 			>
 				Sign In
-			</button>
+			</button> */}
 			<GoogleSignInButton />
 			{/* <button className="bg-slate-500" title="sign in" onClick={googleSignIn}></button> */}
-			<button onClick={logout}>Log out</button>
+			{/* <button onClick={logout}>Log out</button> */}
 
 			<dialog>Complete!</dialog>
 		</div>

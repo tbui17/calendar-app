@@ -9,4 +9,6 @@ export type ICalendarData = {
     description?:string
 }
 
-console.log(process.env.NEXT_TEST)
+export type IHasToken = {
+    accessToken:string
+}

@@ -41,9 +41,9 @@ const AUTHENTICATED_USER_TYPE = "authorized_user";
 
 export function makeOAuth2Client() {
 	const oAuth2Client = new OAuth2Client(
-		process.env.CLIENT_ID,
-		process.env.CLIENT_SECRET,
-		process.env.REDIRECT_URI
+		process.env.NEXT_CLIENT_ID,
+		process.env.NEXT_CLIENT_SECRET,
+		process.env.NEXT_REDIRECT_URI
 	);
 	return oAuth2Client;
 }
@@ -102,8 +102,8 @@ export async function loadSavedCredentialsIfExist(userId:string) {
 		const userData = user.data() as IUser;
 
 		const appInfo: IUnverifiedAppInfo = {
-			client_id: process.env.CLIENT_ID,
-			client_secret: process.env.CLIENT_SECRET,
+			client_id: process.env.NEXT_CLIENT_ID,
+			client_secret: process.env.NEXT_CLIENT_SECRET,
 		};
 
 		if (!appInfo.client_id || !appInfo.client_secret) {
@@ -224,6 +224,8 @@ async function listEvents(auth: Auth.OAuth2Client) {
 		console.log(`${start} - ${event.summary}`);
 	});
 }
+
+export const googleAuthClient = makeOAuth2Client()
 
 async function main() {
 	const client = makeOAuth2Client()

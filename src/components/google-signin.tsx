@@ -4,10 +4,18 @@ export const GoogleSignInButton = () =>{
 
 return <GoogleLogin
   onSuccess={credentialResponse => {
-    console.log(credentialResponse);
+    
+    const accessToken = credentialResponse.credential
+    if (!accessToken){
+        console.error('Google could not authenticate');
+    }
+    else {
+        localStorage.setItem("accessToken", accessToken)
+    }
+    
   }}
   onError={() => {
-    console.log('Login Failed');
+    console.error('Login Failed');
   }}
 />;
 }
