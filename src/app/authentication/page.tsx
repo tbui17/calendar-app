@@ -1,10 +1,20 @@
+"use client"
 
+import {redirect} from "next/navigation"
+import { useSession } from 'next-auth/react'
 
-export default function Home() {
+export default function AuthenticationPage() {
+    const {data: session} = useSession({required:true})
 
 
     return(
-        <p>Hello World</p>
+        <ul>
+        <li>Lorem ipsum dolor sit amet, consectetuer adipiscing elit.</li>
+        <li>Aliquam tincidunt mauris eu risus.</li>
+        <li>Vestibulum auctor dapibus neque.</li>
+     </ul>
+              
+        
     )
       
   }

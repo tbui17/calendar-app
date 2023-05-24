@@ -1,9 +1,9 @@
 import { Auth, calendar_v3, google } from "googleapis";
 import { FirebaseClient, QueryParams, fbClient } from "@/backend/modules/firebase-client";
+import { authorize, makeOAuth2Client } from "../backend/modules/google-api-auth";
 
 import { GaxiosResponse } from "gaxios";
 import { IUserDataResponse } from "@/backend/modules/types";
-import { authorize } from "../backend/modules/google-api-auth";
 
 export type Schema$Event = calendar_v3.Schema$Event;
 export type Schema$Events = calendar_v3.Schema$Events;
@@ -27,8 +27,11 @@ export class TransformedEvent {
 
 export class CalendarClient {
 	public cal: calendar_v3.Calendar;
-	constructor(private auth: Auth.OAuth2Client) {
-		this.cal = google.calendar({ version: "v3", auth });
+	private auth: Auth.OAuth2Client
+	constructor(token:string) {
+		this.auth = makeOAuth2Client()
+		this.auth.setCredentials({access_token:token})
+		this.cal = google.calendar({ version: "v3", auth:this.auth });
 	}
 	async listEvents() {
 		const calendar = this.cal;
@@ -93,10 +96,6 @@ export class CalendarClient {
 		return transformedEvents;
 	}
 
-	static async fromUserId(userId:string){
-		const r = await authorize(userId)
-		return new this(r)
-	}
 }
 function handleResponse(res: GaxiosResponse<Schema$Events>) {
 	const events = res.data.items;

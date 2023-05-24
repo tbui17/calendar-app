@@ -8,3 +8,7 @@ export type ICalendarData = {
     date:string;
     description?:string
 }
+
+export type IHasToken = {
+    accessToken:string
+}
