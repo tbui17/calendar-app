@@ -11,11 +11,14 @@ import dayGridPlugin from "@fullcalendar/daygrid"; // a plugin!
 import { db } from "../backend/modules/firebase-setup";
 
 const getDataEndpoint = "api/getData";
+
+const defaultEvents = [
+	{ title: "event 1", date: "2023-04-06" },
+	{ title: "event 2", date: "2023-04-05" },
+]
+
 export const CalendarApp = () => {
-	const [events, setEvents] = useState([
-		{ title: "event 1", date: "2023-04-06" },
-		{ title: "event 2", date: "2023-04-05" },
-	]);
+	const [events, setEvents] = useState(defaultEvents);
 	
 
 
@@ -25,7 +28,7 @@ export const CalendarApp = () => {
 	};
 	const handleSyncClick = async () => {
 		console.log("Retrieving data...");
-		const res = await axios.get(getDataEndpoint,{params: {userId: "asd"}});
+		const res = await axios.get(getDataEndpoint,{params: {userId: "asd"}});	
 		const results: INextResponse<TransformedEvent[]> = res.data;
 		const results2: TransformedEvent[] = results.result;
 		const transformedResult: ICalendarData[] = [];
@@ -38,7 +41,7 @@ export const CalendarApp = () => {
       }
 			transformedResult.push({
 				title: result.summary,
-				date: result.start,
+				date: result.start,	
         description: result.description,
 			});
 		}
@@ -67,13 +70,3 @@ export const CalendarApp = () => {
 		/>
 	);
 };
-
-
-
-function doStuff(arg1:any, arg2:any){
-	// yolo
-}
-
-function doStuff2<T>(arg1: keyof T, arg2: {subarg:string, subarg2: string, subarg3: number}){
-	// do things
-}

@@ -20,8 +20,6 @@ import http from "http";
 import open from "open";
 import url from "url";
 
-dotenv.config()
-
 enum ScopeList {
 	// https://developers.google.com/identity/protocols/oauth2/scopes Calendar API, v3
 	CALENDAR = "https://www.googleapis.com/auth/calendar",

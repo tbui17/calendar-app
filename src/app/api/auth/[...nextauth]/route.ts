@@ -1,3 +1,4 @@
+import { GoogleOAuthProvider } from "@react-oauth/google";
 import GoogleProvider from "next-auth/providers/google";
 import NextAuth from "next-auth"
 
@@ -17,6 +18,7 @@ export const authOptions = {
     })
   ],
   secret: process.env.NEXT_JWT_SECRET,
+  
 }
 const handler = NextAuth(authOptions)
 

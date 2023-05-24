@@ -15,10 +15,14 @@ import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
-import { GoogleSignInButton } from "./google-signin";
 import axios from "axios";
 import { useState } from "react";
 import { userTokenRequest } from "@/backend/modules/types";
+
+// import { GoogleSignInButton } from "./google-signin";
+
+
+
 
 // import { auth, googleProvider } from "src/backend/modules/firebase-setup";
 
@@ -127,7 +131,7 @@ export const AuthForm = () => {
 			>
 				Sign In
 			</button> */}
-			<GoogleSignInButton />
+			{/* <GoogleSignInButton /> */}
 			{/* <button className="bg-slate-500" title="sign in" onClick={googleSignIn}></button> */}
 			{/* <button onClick={logout}>Log out</button> */}
 
