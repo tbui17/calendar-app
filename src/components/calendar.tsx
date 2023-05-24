@@ -67,3 +67,13 @@ export const CalendarApp = () => {
 		/>
 	);
 };
+
+
+
+function doStuff(arg1:any, arg2:any){
+	// yolo
+}
+
+function doStuff2<T>(arg1: keyof T, arg2: {subarg:string, subarg2: string, subarg3: number}){
+	// do things
+}

@@ -21,6 +21,7 @@ export async function POST(request: NextRequest) {
         status: 200,
         result: {message: "Token successfully updated."}
     }
+    
     return NextResponse.json(body)
     
     

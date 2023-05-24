@@ -21,11 +21,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        {/* <Provider> */}
-        <GoogleOAuthProvider clientId = "487907259037-ehfsca6qka0h03htldacga4n9gdul6ir.apps.googleusercontent.com">
+        <Provider>
+        {/* <GoogleOAuthProvider clientId = "487907259037-ehfsca6qka0h03htldacga4n9gdul6ir.apps.googleusercontent.com"> */}
         <main>{children}</main>
-        </GoogleOAuthProvider>
-        {/* </Provider> */}
+        {/* </GoogleOAuthProvider> */}
+        </Provider>
         </body>
         
     </html>

@@ -5,8 +5,14 @@ type IHelloPostRequest = {
 }
 
 export async function POST(request: Request) {
-  const res:IHelloPostRequest = await request.json();
-  console.log(res.dat)
+  const res:any = await request.json();
+  console.log(res)
   
-  return NextResponse.json(res);
-}
+  return new NextResponse(null, {
+    
+    
+    headers: {
+      'Content-Type': 'application/json',
+
+    },
+  })}
