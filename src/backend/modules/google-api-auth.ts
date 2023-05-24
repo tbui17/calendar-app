@@ -41,9 +41,19 @@ export function makeOAuth2Client() {
 	const oAuth2Client = new OAuth2Client(
 		process.env.NEXT_CLIENT_ID,
 		process.env.NEXT_CLIENT_SECRET,
-		process.env.NEXT_REDIRECT_URI
+		process.env.NEXT_REDIRECT_URI,
+		
 	);
 	return oAuth2Client;
+}
+
+export function makeCredentialedOAuth2Client(access_token:string, refresh_token:string) {
+	const client = makeOAuth2Client()
+	client.setCredentials({
+		access_token,
+		refresh_token,
+	})
+	return client
 }
 
 export function generateAuthUrl(oAuth2Client:OAuth2Client){
@@ -58,6 +68,7 @@ export function generateAuthUrl(oAuth2Client:OAuth2Client){
 export async function getTokenIntoClient(code:string, client:OAuth2Client){
 	const tokenResponse = await client.getToken(code)
 	const {tokens} = tokenResponse
+	
 	client.setCredentials(tokens)
 	const response:ClientCodeResponse = {
 		tokens,

@@ -37,7 +37,7 @@ export type ClientCodeResponse = {
 
 export type getTokenRequest = {
 	userId:string
-	code:string
+	
 }
 
 export type userTokenRequest = {

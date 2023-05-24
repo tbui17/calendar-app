@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server';
+import { authOptions } from '../auth/[...nextauth]/route';
+import { getServerSession } from 'next-auth';
 
 export async function POST(request: Request) {
   const res:any = await request.json();
-  console.log(res)
-  console.log(process.env.NEXT_GOOGLE_ID)
-  console.log(process.env.NEXT_GOOGLE_SECRET)
   return new NextResponse("asd", {
     
     
@@ -20,9 +19,9 @@ export async function POST(request: Request) {
 
 export async function GET(request: Request) {
     
+    const res = await getServerSession(authOptions)
+    console.log(res)
     
-    console.log(process.env.NEXT_GOOGLE_ID)
-    console.log(process.env.NEXT_GOOGLE_SECRET)
     const body = JSON.stringify({message: "Hello World"})
     return new NextResponse(body, {
     
