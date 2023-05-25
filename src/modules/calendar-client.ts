@@ -1,9 +1,10 @@
-import { Auth, calendar_v3, google } from "googleapis";
-import { FirebaseClient, QueryParams, fbClient } from "@/backend/modules/firebase-client";
+import { Auth, calendar_v3, google } from 'googleapis';
+import { FirebaseClient, QueryParams, fbClient } from '@/backend/modules/firebase-client';
 
-import { GaxiosResponse } from "gaxios";
-import { ISingleDocumentDataResponse } from "@/backend/modules/types";
-import { makeOAuth2Client } from "../backend/modules/google-api-auth";
+import { GaxiosResponse } from 'gaxios';
+import { ISingleDocumentDataResponse } from '@/backend/modules/types';
+import { ITransformedEvent } from './types';
+import { makeOAuth2Client } from '../backend/modules/google-api-auth';
 
 export type Schema$Event = calendar_v3.Schema$Event;
 export type Schema$Events = calendar_v3.Schema$Events;
@@ -13,14 +14,8 @@ const refreshDateEnd = new Date(refreshDate.getTime())
 refreshDateEnd.setMonth(refreshDateEnd.getMonth() + 1)
 const refreshDateStr = refreshDate.toISOString();
 const refreshDateEndStr = refreshDateEnd.toISOString()
-export class TransformedEvent {
-	constructor(
-		public id: string,
-		public start?: string | null | undefined,
-		public summary?: string | null | undefined,
-		public description?: string | null | undefined
-	) {}
-}
+
+
 
 
 
@@ -78,43 +73,47 @@ export class CalendarClient {
 	}
 
 	transformEvents(events: Schema$Event[]) {
-		const transformedEvents: TransformedEvent[] = [];
+		const transformedEvents: ITransformedEvent[] = [];
 		for (const event of events) {
 			if (!event.id) {
 				throw new Error("No event id found.");
 			}
 			{
-				const tEvent = new TransformedEvent(
-					event.id,
-					event.start?.dateTime || event.start?.date,
-					event.summary,
-					event.description
-				);
+				const tEvent: ITransformedEvent = {
+					id: event.id,
+					start: event.start?.dateTime || event.start?.date,
+					end: event.end?.dateTime,
+					summary: event.summary,
+					description: event.description
+				};
 				transformedEvents.push(tEvent);
 			}
 		}
 		return transformedEvents;
 	}
 
-	async fromUserEmail(email:string){
-		const user = await fbClient.getUserAccountFromEmail(email)
-		if(!user){
-			throw new Error(`No user found with email ${email}`)
+	static async fromUserEmail(email:string){
+		const token = await fbClient.getUserTokenFromEmail(email)
+		if (token instanceof Error){
+			return token
 		}
-		const token = user.token
-		const cal = new CalendarClient(token)
-		return cal
+		return new CalendarClient(token)
 	}
-
+	static async fromSessionToken(sessionToken:string){
+		const token = await fbClient.getAccessTokenFromSessionId(sessionToken)
+		if (token instanceof Error){
+			return token
+		}
+		return new CalendarClient(token)
+	}
 }
+
 function handleResponse(res: GaxiosResponse<Schema$Events>) {
 	const events = res.data.items;
 	if (!events || events.length === 0) {
-		console.log("No event found.");
+		
 		return;
 	}
 	
 	return events;
 }
-
-

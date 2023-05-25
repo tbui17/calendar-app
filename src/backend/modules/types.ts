@@ -1,5 +1,6 @@
+import { DocumentData, Timestamp } from "firebase/firestore";
+
 import { Auth } from "googleapis";
-import { DocumentData } from "firebase/firestore";
 
 export type IUser = {
 	email: string;
@@ -65,3 +66,9 @@ export type Collections =
 	|"app_data"
 	|"event"
 	|"sessions"
+
+export type ISession = {
+	expires: Timestamp
+	sessionToken: string
+	userId: string
+}

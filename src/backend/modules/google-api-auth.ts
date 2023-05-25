@@ -232,6 +232,7 @@ async function listEvents(auth: Auth.OAuth2Client) {
 		}
 		console.log(`${start} - ${event.summary}`);
 	});
+	
 }
 
 export const googleAuthClient = makeOAuth2Client()

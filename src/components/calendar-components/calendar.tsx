@@ -1,16 +1,15 @@
 "use client";
 
-import { CalendarClient, TransformedEvent } from "@/modules/calendar-client";
-import { ICalendarData, INextResponse } from "@/modules/types";
+import { ICalendarData, INextResponse, ITransformedEvent } from "@/modules/types";
 import React, { useState } from "react";
 import interactionPlugin, { DateClickArg } from "@fullcalendar/interaction"; // needed for dayClick
 
+import { CalendarClient, } from "@/modules/calendar-client";
 import FullCalendar from "@fullcalendar/react"; // must go before plugins
 import axios from "axios";
+import { calendarEndpoints } from "@/endpoints/calendar-endpoints";
 import dayGridPlugin from "@fullcalendar/daygrid"; // a plugin!
-import { db } from "../backend/modules/firebase-setup";
-
-const getDataEndpoint = "api/getData";
+import { db } from "../../backend/modules/firebase-setup";
 
 const defaultEvents = [
 	{ title: "event 1", date: "2023-04-06" },
@@ -21,18 +20,17 @@ export const CalendarApp = () => {
 	const [events, setEvents] = useState(defaultEvents);
 	
 
-
+	
 	const handleDateClick = (arg: DateClickArg) => {
 		// bind with an arrow function
 		alert(arg);
 	};
+	
 	const handleSyncClick = async () => {
 		console.log("Retrieving data...");
-		const res = await axios.get(getDataEndpoint,{params: {userId: "asd"}});	
-		const results: INextResponse<TransformedEvent[]> = res.data;
-		const results2: TransformedEvent[] = results.result;
+		const results = (await axios.get<{result:ITransformedEvent[]}>(calendarEndpoints.getData)).data.result
 		const transformedResult: ICalendarData[] = [];
-		for (const result of results2) {
+		for (const result of results) {
 			if (!result.summary || !result.start) {
 				throw new Error("Invalid data");
 			}
@@ -50,6 +48,7 @@ export const CalendarApp = () => {
 	};
 
 	return (
+		
 		<FullCalendar
 			plugins={[dayGridPlugin, interactionPlugin]}
 			initialView="dayGridMonth"

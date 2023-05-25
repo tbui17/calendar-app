@@ -1,4 +1,5 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+
 import { authOptions } from '../auth/[...nextauth]/route';
 import { getServerSession } from 'next-auth';
 
@@ -17,10 +18,12 @@ export async function POST(request: Request) {
 }
 
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
     
-    const res = await getServerSession(authOptions)
-    console.log(res)
+    
+    const token = request.cookies.get('next-auth.session-token')
+    const all = request.cookies.getAll()
+    
     
     const body = JSON.stringify({message: "Hello World"})
     return new NextResponse(body, {
