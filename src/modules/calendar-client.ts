@@ -10,8 +10,8 @@ export type Schema$Event = calendar_v3.Schema$Event;
 export type Schema$Events = calendar_v3.Schema$Events;
 
 const refreshDate = new Date("2023-05-01")
-const refreshDateEnd = new Date(refreshDate.getTime())
-refreshDateEnd.setMonth(refreshDateEnd.getMonth() + 1)
+const refreshDateEnd = new Date(refreshDate.getTime())// TODO do not leave this as is in prod, process will be long running and date will not be updated.
+refreshDateEnd.setMonth(refreshDateEnd.getMonth() + 1) 
 const refreshDateStr = refreshDate.toISOString();
 const refreshDateEndStr = refreshDateEnd.toISOString()
 
