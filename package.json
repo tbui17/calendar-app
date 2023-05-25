@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "testWatch": "vitest",
+    "testWatchUi": "vitest --ui --api 9527",
+    "test": "vitest run"
   },
   "dependencies": {
     "@emotion/react": "^11.11.0",

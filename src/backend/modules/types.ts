@@ -3,10 +3,23 @@ import { DocumentData } from "firebase/firestore";
 
 export type IUser = {
 	email: string;
-	refresh_token: string;
-	userId: string;
-	access_token:string;
+	emailVerified: boolean|null
+	image: string;
+	name: string
 };
+
+export type IAccounts = {
+	access_token:string;
+	expires_at:number;
+	id_token:string;
+	provider:string;
+	providerAccountId:string;
+	refresh_token:string;
+	scope: string;
+	token_type: string|"Bearer";
+	type: "oauth" | string;
+	userId: string;
+}
 
 export type ICredentials = {
 	client_id: string;
@@ -24,7 +37,7 @@ export type IVerifiedAppInfo = {
 	[K in keyof IUnverifiedAppInfo]: NonNullable<IUnverifiedAppInfo[K]>
 }
 
-export type IUserDataResponse<T=DocumentData> = {
+export type ISingleDocumentDataResponse<T=DocumentData> = {
 	documentId:string
 	data: T
 }
@@ -35,13 +48,20 @@ export type ClientCodeResponse = {
 	
 }
 
-export type getTokenRequest = {
+export type GetTokenRequest = {
 	userId:string
 	
 }
 
-export type userTokenRequest = {
+export type UserTokenRequest = {
 	userId:string
 	refreshToken:string
 	accessToken:string|undefined
 }
+
+export type Collections = 
+	|"users"
+	|"accounts"
+	|"app_data"
+	|"event"
+	|"sessions"

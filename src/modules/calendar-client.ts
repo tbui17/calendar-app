@@ -1,9 +1,9 @@
 import { Auth, calendar_v3, google } from "googleapis";
 import { FirebaseClient, QueryParams, fbClient } from "@/backend/modules/firebase-client";
-import { authorize, makeOAuth2Client } from "../backend/modules/google-api-auth";
 
 import { GaxiosResponse } from "gaxios";
-import { IUserDataResponse } from "@/backend/modules/types";
+import { ISingleDocumentDataResponse } from "@/backend/modules/types";
+import { makeOAuth2Client } from "../backend/modules/google-api-auth";
 
 export type Schema$Event = calendar_v3.Schema$Event;
 export type Schema$Events = calendar_v3.Schema$Events;
@@ -94,6 +94,16 @@ export class CalendarClient {
 			}
 		}
 		return transformedEvents;
+	}
+
+	async fromUserEmail(email:string){
+		const user = await fbClient.getUserAccountFromEmail(email)
+		if(!user){
+			throw new Error(`No user found with email ${email}`)
+		}
+		const token = user.token
+		const cal = new CalendarClient(token)
+		return cal
 	}
 
 }

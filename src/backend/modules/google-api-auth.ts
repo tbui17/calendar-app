@@ -98,44 +98,44 @@ export function getAuthenticatedClient(){
  *
  * @return {Promise<OAuth2Client|null>}
  */
-export async function loadSavedCredentialsIfExist(userId:string) {
-	try {
-		const usersRef = await fireDb.collection(db, "users");
+// export async function loadSavedCredentialsIfExist(userId:string) {
+	// try {
+	// 	const usersRef = await fireDb.collection(db, "users");
 
-		const query = await fireDb.query(
-			usersRef,
-			fireDb.where("userId", "==", userId)
-		);
-		const querySnap = await fireDb.getDocs(query);
-		const user = querySnap.docs[0];
-		const userData = user.data() as IUser;
+	// 	const query = await fireDb.query(
+	// 		usersRef,
+	// 		fireDb.where("userId", "==", userId)
+	// 	);
+	// 	const querySnap = await fireDb.getDocs(query);
+	// 	const user = querySnap.docs[0];
+	// 	const userData = user.data() as IUser;
 
-		const appInfo: IUnverifiedAppInfo = {
-			client_id: process.env.NEXT_CLIENT_ID,
-			client_secret: process.env.NEXT_CLIENT_SECRET,
-		};
+	// 	const appInfo: IUnverifiedAppInfo = {
+	// 		client_id: process.env.NEXT_CLIENT_ID,
+	// 		client_secret: process.env.NEXT_CLIENT_SECRET,
+	// 	};
 
-		if (!appInfo.client_id || !appInfo.client_secret) {
-			throw new Error("Missing client_id or client_secret");
-		}
-		const appInfoVerified: IVerifiedAppInfo = appInfo as IVerifiedAppInfo;
-		const credentials: ICredentials = {
-			...appInfoVerified,
-			refresh_token: userData.refresh_token,
-			type: AUTHENTICATED_USER_TYPE,
-		};
+	// 	if (!appInfo.client_id || !appInfo.client_secret) {
+	// 		throw new Error("Missing client_id or client_secret");
+	// 	}
+	// 	const appInfoVerified: IVerifiedAppInfo = appInfo as IVerifiedAppInfo;
+	// 	const credentials: ICredentials = {
+	// 		...appInfoVerified,
+	// 		refresh_token: userData.refresh_token,
+	// 		type: AUTHENTICATED_USER_TYPE,
+	// 	};
 
-		return google.auth.fromJSON(credentials);
+	// 	return google.auth.fromJSON(credentials);
 
 		// google's implementation
-		// const content = await fs.promises.readFile(TOKEN_PATH);
-		// const credentials = JSON.parse(content.toString());
-		// return google.auth.fromJSON(credentials);
-	} catch (err) {
-		console.error(err);
-		return null;
-	}
-}
+	// 	const content = await fs.promises.readFile(TOKEN_PATH);
+	// 	const credentials = JSON.parse(content.toString());
+	// 	return google.auth.fromJSON(credentials);
+	// } catch (err) {
+	// 	console.error(err);
+	// 	return null;
+	// }
+// }
 
 // /**
 //  * Serializes credentials to a file compatible with GoogleAUth.fromJSON.
@@ -179,19 +179,19 @@ async function saveCredentials(userId: string, client: any) {
  * Load or request or authorization to call APIs.
  *
  */
-export async function authorize(userId:string) {
-	let client = await loadSavedCredentialsIfExist(userId);
-	if (client) {
-		return client as Auth.OAuth2Client;
-	}
-	throw new Error ("No client")
-	// const client2 = await authenticate({
-	// 	scopes: SCOPES,
-	// 	keyfilePath: CREDENTIALS_PATH,
-	// });
+// export async function authorize(userId:string) {
+// 	let client = await loadSavedCredentialsIfExist(userId);
+// 	if (client) {
+// 		return client as Auth.OAuth2Client;
+// 	}
+// 	throw new Error ("No client")
+// 	// const client2 = await authenticate({
+// 	// 	scopes: SCOPES,
+// 	// 	keyfilePath: CREDENTIALS_PATH,
+// 	// });
 	
 	
-}
+// }
 
 // export async function authorizeUser(email: string) {
 // 	const client = await authorize();

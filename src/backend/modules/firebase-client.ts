@@ -1,3 +1,5 @@
+import { Collections, IAccounts, ISingleDocumentDataResponse } from "./types";
+import { DatabaseRetrieveError, DatabaseRetrieveNoResultError } from "./errors";
 import {
 	DocumentData,
 	Firestore,
@@ -10,23 +12,21 @@ import {
 	where,
 } from "firebase/firestore";
 
-import { IUserDataResponse } from "./types";
 import { db } from "./firebase-setup";
 
 export class QueryParams {
 	constructor(
-		public collectionPath: string,
+		public collectionPath: Collections,
 		public field: string,
 		public operator: WhereFilterOp,
-		public value: string
+		public value: string|number|JSON
 	) {}
 
-	static fromUserEmail(email: string, operator: WhereFilterOp = "=="): QueryParams {
+	static queryUserEmail(
+		email: string,
+		operator: WhereFilterOp = "=="
+	): QueryParams {
 		return new QueryParams("users", "email", operator, email);
-	}
-
-	static fromUserId(id: string, operator: WhereFilterOp = "=="): QueryParams {
-		return new QueryParams("users", "userId", operator, id);
 	}
 }
 
@@ -36,7 +36,20 @@ export class FirebaseClient {
 		this.db = db;
 	}
 
-	async queryDb<T = DocumentData>(params: QueryParams) {
+	async queryDbSingle<T = DocumentData>(params: QueryParams) {
+		const docs = await this.queryDb(params);
+		if (docs instanceof Error){
+			return docs
+		}
+		const doc = docs[0];
+		const response: ISingleDocumentDataResponse<T> = {
+			documentId: doc.id,
+			data: doc.data() as T,
+		};
+		return response;
+	}
+
+	async queryDb(params: QueryParams) {
 		const usersRef = collection(this.db, params.collectionPath);
 		const q = query(
 			usersRef,
@@ -45,42 +58,38 @@ export class FirebaseClient {
 
 		const querySnapshot = await getDocs(q);
 		if (!querySnapshot.empty) {
-			const doc = querySnapshot.docs[0]; // Get the first document
-			const { id } = doc;
-			const data = doc.data() as T;
-			const response: IUserDataResponse<T> = {
-				documentId: id,
-				data,
-			};
-			return response;
+			return querySnapshot.docs;
 		} else {
 			console.log("No result found for query.");
-			return null;
+			return new DatabaseRetrieveNoResultError("No result found for query.")
 		}
 	}
 
 	async createOrUpdate<T extends Record<string, any> = Record<string, any>>(
 		collectionPath: string,
 		documentId: string,
-		data: T,
-        
+		data: T
 	) {
 		const collectionRef = collection(db, collectionPath);
 		const docRef = doc(collectionRef, documentId);
 
 		// Set/update the refreshToken for the user
 		await setDoc(docRef, data, { merge: true });
-		return true
+		return true;
 	}
 
-	async storeTokenInDb(accessToken:string, refreshToken:string, userId:string){
-		const res = await this.queryDb(QueryParams.fromUserId(userId))
-		const docId = res?.documentId
-		if (!docId){
-			throw new Error("No user found")
+
+	async getUserAccountFromEmail(email: string):Promise<ISingleDocumentDataResponse|Error> {
+		const res = await this.queryDbSingle(QueryParams.queryUserEmail(email));
+		if (res instanceof Error){
+			return res
 		}
-		await this.createOrUpdate("users", docId, {refresh_token:refreshToken, access_token:accessToken, userId:userId})
-		return true
+		const field:keyof IAccounts = "userId"
+		const userId = res.documentId
+		const params = new QueryParams("accounts", field, "==", userId )
+		const result = await this.queryDbSingle(params)
+		return result
+
 	}
 }
 
