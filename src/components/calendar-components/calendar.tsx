@@ -1,15 +1,16 @@
 "use client";
 
-import { ICalendarData, INextResponse, ITransformedEvent } from "@/modules/types";
+import { ICalendarData, ITransformedEvent } from "@/modules/types";
 import React, { useState } from "react";
 import interactionPlugin, { DateClickArg } from "@fullcalendar/interaction"; // needed for dayClick
 
-import { CalendarClient, } from "@/modules/calendar-client";
 import FullCalendar from "@fullcalendar/react"; // must go before plugins
 import axios from "axios";
 import { calendarEndpoints } from "@/endpoints/calendar-endpoints";
 import dayGridPlugin from "@fullcalendar/daygrid"; // a plugin!
-import { db } from "../../backend/modules/firebase-setup";
+import multiMonthPlugin from '@fullcalendar/multimonth'
+
+// import multiMonthPlugin from "@fullcalendar/daygrid";
 
 const defaultEvents = [
 	{ title: "event 1", date: "2023-04-06" },
@@ -48,18 +49,23 @@ export const CalendarApp = () => {
 	};
 
 	return (
+		<div>
 		
 		<FullCalendar
-			plugins={[dayGridPlugin, interactionPlugin]}
-			initialView="dayGridMonth"
-			weekends={false}
+			plugins={[dayGridPlugin, interactionPlugin, multiMonthPlugin]}
+			initialView="multiMonthYear"
+			weekends={true}
 			dateClick={handleDateClick}
 			events={events}
+			
 			headerToolbar={{
 				start: "customButton prev,next today",
 				center: "title",
 				end: "dayGridMonth,timeGridWeek,timeGridDay",
+				
 			}}
+			
+			multiMonthMaxColumns={1}
 			customButtons={{
 				customButton: {
 					text: "Sync",
@@ -67,5 +73,7 @@ export const CalendarApp = () => {
 				},
 			}}
 		/>
+		</div>
+		
 	);
 };

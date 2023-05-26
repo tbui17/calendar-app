@@ -115,7 +115,7 @@ export class FirebaseClient {
 		return r
 	}
 
-	async getAccessTokenFromSessionId(sessionToken:string){
+	async getTokeninfoFromSessionToken(sessionToken:string){
 		// Does not need to check if session token expired because NextAuth handles this and replaces session token automatically.
 		const session = await this.getSessionTokenInfo(sessionToken)
 		if(session instanceof Error){
@@ -128,7 +128,7 @@ export class FirebaseClient {
 			tokenInfo.message = "Token not found."
 			return tokenInfo
 		}
-		return tokenInfo.data.access_token
+		return tokenInfo.data
 	}
 
 	

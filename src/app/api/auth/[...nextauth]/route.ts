@@ -18,11 +18,14 @@ export const authOptions = {
     GoogleProvider({
       clientId: process.env.NEXT_GOOGLE_ID||"",
       clientSecret: process.env.NEXT_GOOGLE_SECRET || "",
+      
       authorization: {
+        
         params: {
           prompt: "consent",
           access_type: "offline",
-          response_type: "code"
+          response_type: "code",
+          scope: "openid https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.email"
         }
       }
     })

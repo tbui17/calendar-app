@@ -1,8 +1,6 @@
 import { CalendarClient, Schema$Event, } from "@/modules/calendar-client";
 import { NextRequest, NextResponse } from "next/server";
 
-import { INextResponse } from '../../../../modules/types';
-
 export async function GET(request: NextRequest) {
     const tokenCookie = request.cookies.get("next-auth.session-token")
     if (!tokenCookie){
@@ -13,6 +11,7 @@ export async function GET(request: NextRequest) {
         return NextResponse.error()
     }
 	
+    
 	const res = await c.getAllEvents();
 	
     if (!res){
@@ -33,4 +32,5 @@ export async function GET(request: NextRequest) {
 		const tEvents = c.transformEvents(events)
 		return NextResponse.json({result:tEvents});
 	}
+    
 }

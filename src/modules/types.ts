@@ -1,7 +1,12 @@
+
+
 export type INextResponse<T> = {
 	result: T;
 	status: number;
 };
+
+
+
 
 export type ICalendarData = {
     title: string;
@@ -11,7 +16,7 @@ export type ICalendarData = {
 
 export type IHasToken = {
     accessToken:string
-}
+    }
 
 export type ITransformedEvent = {
     id: string;
@@ -20,3 +25,5 @@ export type ITransformedEvent = {
     summary?: string | null | undefined;
     description?: string | null | undefined;
 }
+
+

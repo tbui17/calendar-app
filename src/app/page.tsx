@@ -3,17 +3,18 @@
 import { signIn, signOut, useSession } from "next-auth/react";
 
 import { CalendarApp } from "../components/calendar-components/calendar";
+import { Form1 } from "@/components/form-component";
 import TestComponent from "@/components/test-component";
 
 // Import the functions you need from the SDKs you need
 
+
 export default function Home() {
 	const session = useSession();
 	const { data } = session;
-	console.log(session);
-	console.log(data);
 
 	if (data) {
+		console.log(data)
 		return (
 			<div>
 				<p>Welcome {data.user?.email}</p>
@@ -23,9 +24,6 @@ export default function Home() {
 				>
 					Sign out
 				</button>
-
-				<TestComponent />
-				
 				<CalendarApp />
 			</div>
 		);

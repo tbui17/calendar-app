@@ -23,10 +23,12 @@ export async function GET(request: NextRequest) {
     
     const token = request.cookies.get('next-auth.session-token')
     const all = request.cookies.getAll()
+    const hello_cookie = request.cookies.get("hello_cookie")
+    console.log(hello_cookie?.value)
     
     
     const body = JSON.stringify({message: "Hello World"})
-    return new NextResponse(body, {
+    const resp = new NextResponse(body, {
     
     
       headers: {
@@ -37,4 +39,6 @@ export async function GET(request: NextRequest) {
       
     })
     
+    resp.cookies.set("hello_cookie", "cookie_value")
+    return resp
   }
