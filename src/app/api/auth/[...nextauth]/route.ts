@@ -4,7 +4,6 @@ import GoogleProvider from "next-auth/providers/google";
 import NextAuth from "next-auth"
 import { cert } from "firebase-admin/app";
 
-console.log(process.env.NEXT_FIREBASE_PROJECT_ID)
 export const authOptions = {
   // Configure one or more authentication providers
   adapter: FirestoreAdapter({

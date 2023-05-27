@@ -1,5 +1,5 @@
 import { Auth } from 'googleapis';
-import { AuthForm } from '@/components/auth';
+import { AuthForm } from '@/components/auth/auth-form';
 import {CalendarApp} from '@/components/calendar-components/calendar';
 
 // Import the functions you need from the SDKs you need

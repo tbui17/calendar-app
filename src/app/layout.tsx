@@ -1,10 +1,6 @@
-"use client"
-
 import './globals.css'
 
-import { GoogleOAuthProvider } from '@react-oauth/google'
 import { Inter } from 'next/font/google'
-import Provider from '@/components/Provider'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -17,11 +13,11 @@ export default function RootLayout({children,}: {children: React.ReactNode}) {
   return (
     <html lang="en">
       <body className={inter.className}>
-        <Provider>
-        {/* <GoogleOAuthProvider clientId = "487907259037-ehfsca6qka0h03htldacga4n9gdul6ir.apps.googleusercontent.com"> */}
+        
+        
         <main>{children}</main>
-        {/* </GoogleOAuthProvider> */}
-        </Provider>
+        
+        
         </body>
         
     </html>
