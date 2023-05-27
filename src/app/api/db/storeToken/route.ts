@@ -1,13 +1,13 @@
+import { GetTokenRequest, UserTokenRequest } from "@/backend/modules/types";
 import { NextRequest, NextResponse } from "next/server";
 import { QueryParams, fbClient } from "@/backend/modules/firebase-client";
 import { getTokenIntoClient as getTokenAndInsertTokenIntoClient, makeOAuth2Client } from "@/backend/modules/google-api-auth";
-import { getTokenRequest, userTokenRequest } from "@/backend/modules/types";
 
 export async function POST(request: NextRequest) {
 
 
     // check that user exists and get doc id
-    const data:userTokenRequest = await request.json()
+    const data:UserTokenRequest = await request.json()
     if (!data.accessToken){
         return NextResponse.json({
             status: 400,

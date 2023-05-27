@@ -1,6 +1,9 @@
+import { Collections, IAccounts as IAccount, ISession, ISingleDocumentDataResponse } from "./types";
+import { DatabaseRetrieveError, DatabaseRetrieveNoResultError } from "./errors";
 import {
 	DocumentData,
 	Firestore,
+	QueryDocumentSnapshot,
 	WhereFilterOp,
 	collection,
 	doc,
@@ -10,23 +13,21 @@ import {
 	where,
 } from "firebase/firestore";
 
-import { IUserDataResponse } from "./types";
 import { db } from "./firebase-setup";
 
 export class QueryParams {
 	constructor(
-		public collectionPath: string,
+		public collectionPath: Collections,
 		public field: string,
 		public operator: WhereFilterOp,
-		public value: string
+		public value: string|number|JSON
 	) {}
 
-	static fromUserEmail(email: string, operator: WhereFilterOp = "=="): QueryParams {
+	static queryUserEmail(
+		email: string,
+		operator: WhereFilterOp = "=="
+	): QueryParams {
 		return new QueryParams("users", "email", operator, email);
-	}
-
-	static fromUserId(id: string, operator: WhereFilterOp = "=="): QueryParams {
-		return new QueryParams("users", "userId", operator, id);
 	}
 }
 
@@ -36,7 +37,20 @@ export class FirebaseClient {
 		this.db = db;
 	}
 
-	async queryDb<T = DocumentData>(params: QueryParams) {
+	async queryDbSingle<T>(params: QueryParams): Promise<DatabaseRetrieveNoResultError | ISingleDocumentDataResponse<T>> {
+		const docs = await this.queryDb(params);
+		if (docs instanceof Error){
+			return docs
+		}
+		const doc = docs[0];
+		const response: ISingleDocumentDataResponse<T> = {
+			documentId: doc.id,
+			data: doc.data() as T,
+		};
+		return response;
+	}
+
+	async queryDb(params: QueryParams): Promise<QueryDocumentSnapshot<DocumentData>[] | DatabaseRetrieveNoResultError> {
 		const usersRef = collection(this.db, params.collectionPath);
 		const q = query(
 			usersRef,
@@ -45,43 +59,81 @@ export class FirebaseClient {
 
 		const querySnapshot = await getDocs(q);
 		if (!querySnapshot.empty) {
-			const doc = querySnapshot.docs[0]; // Get the first document
-			const { id } = doc;
-			const data = doc.data() as T;
-			const response: IUserDataResponse<T> = {
-				documentId: id,
-				data,
-			};
-			return response;
+			return querySnapshot.docs;
 		} else {
 			console.log("No result found for query.");
-			return null;
+			return new DatabaseRetrieveNoResultError("No result found for query.")
 		}
 	}
 
 	async createOrUpdate<T extends Record<string, any> = Record<string, any>>(
 		collectionPath: string,
 		documentId: string,
-		data: T,
-        
+		data: T
 	) {
 		const collectionRef = collection(db, collectionPath);
 		const docRef = doc(collectionRef, documentId);
 
 		// Set/update the refreshToken for the user
 		await setDoc(docRef, data, { merge: true });
-		return true
+		return true;
 	}
 
-	async storeTokenInDb(accessToken:string, refreshToken:string, userId:string){
-		const res = await this.queryDb(QueryParams.fromUserId(userId))
-		const docId = res?.documentId
-		if (!docId){
-			throw new Error("No user found")
+
+	async getUserAccountFromEmail(email: string) {
+		const res = await this.queryDbSingle(QueryParams.queryUserEmail(email));
+		if (res instanceof Error){
+			return res
 		}
-		await this.createOrUpdate("users", docId, {refresh_token:refreshToken, access_token:accessToken, userId:userId})
-		return true
+		const field:keyof IAccount = "userId"
+		const userId = res.documentId
+		const params = new QueryParams("accounts", field, "==", userId )
+		const result = await this.queryDbSingle<IAccount>(params)
+		return result
+
 	}
+
+	async getUserTokenFromEmail(email:string){
+		const res = await this.getUserAccountFromEmail(email)
+		if(res instanceof Error){
+			return res
+		}
+		return res.data.access_token
+	}
+
+	async getSessionTokenInfo(sessionId: string){
+		const params = new QueryParams("sessions", "sessionToken", "==", sessionId)
+		const r = await this.queryDbSingle<ISession>(params)
+		return r
+
+
+	}
+
+	async getTokenInfoFromUserId(userId:string){
+		const params = new QueryParams("accounts", "userId", "==", userId)
+		const r = await this.queryDbSingle<IAccount>(params)
+		return r
+	}
+
+	async getTokeninfoFromSessionToken(sessionToken:string){
+		// Does not need to check if session token expired because NextAuth handles this and replaces session token automatically.
+		const session = await this.getSessionTokenInfo(sessionToken)
+		if(session instanceof Error){
+			session.message = "Session not found."
+			return session
+		}
+		const {userId} = session.data
+		const tokenInfo = await this.getTokenInfoFromUserId(userId)
+		if(tokenInfo instanceof Error){
+			tokenInfo.message = "Token not found."
+			return tokenInfo
+		}
+		return tokenInfo.data
+	}
+
+	
+
+
 }
 
 export const fbClient = new FirebaseClient();

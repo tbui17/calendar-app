@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { QueryParams, fbClient } from "@/backend/modules/firebase-client";
 import { generateAuthUrl, getTokenIntoClient as getTokenAndInsertTokenIntoClient, makeOAuth2Client } from "@/backend/modules/google-api-auth";
 
+import { GetTokenRequest } from "@/backend/modules/types";
 import { auth } from "@/backend/modules/firebase-setup";
 import { createUserWithEmailAndPassword } from "firebase/auth";
-import { getTokenRequest } from "@/backend/modules/types";
 
 export async function GET(request: NextRequest) {
 

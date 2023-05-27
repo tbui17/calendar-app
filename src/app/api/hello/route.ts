@@ -1,10 +1,10 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+
+import { authOptions } from '../auth/[...nextauth]/route';
+import { getServerSession } from 'next-auth';
 
 export async function POST(request: Request) {
   const res:any = await request.json();
-  console.log(res)
-  console.log(process.env.NEXT_GOOGLE_ID)
-  console.log(process.env.NEXT_GOOGLE_SECRET)
   return new NextResponse("asd", {
     
     
@@ -18,13 +18,17 @@ export async function POST(request: Request) {
 }
 
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
     
     
-    console.log(process.env.NEXT_GOOGLE_ID)
-    console.log(process.env.NEXT_GOOGLE_SECRET)
+    const token = request.cookies.get('next-auth.session-token')
+    const all = request.cookies.getAll()
+    const hello_cookie = request.cookies.get("hello_cookie")
+    console.log(hello_cookie?.value)
+    
+    
     const body = JSON.stringify({message: "Hello World"})
-    return new NextResponse(body, {
+    const resp = new NextResponse(body, {
     
     
       headers: {
@@ -35,4 +39,6 @@ export async function GET(request: Request) {
       
     })
     
+    resp.cookies.set("hello_cookie", "cookie_value")
+    return resp
   }
