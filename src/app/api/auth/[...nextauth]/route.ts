@@ -1,22 +1,21 @@
 import { FirestoreAdapter } from "@next-auth/firebase-adapter";
-import { GoogleOAuthProvider } from "@react-oauth/google";
 import GoogleProvider from "next-auth/providers/google";
 import NextAuth from "next-auth"
 import { cert } from "firebase-admin/app";
 
+if (!process.env.NEXT_FIREBASE_PROJECT_ID) throw new Error("Missing NEXT_FIREBASE_PROJECT_ID")
+if (!process.env.NEXT_FIREBASE_CLIENT_EMAIL) throw new Error("Missing NEXT_FIREBASE_CLIENT_EMAIL")
+if (!process.env.NEXT_FIREBASE_PRIVATE_KEY) throw new Error("Missing NEXT_FIREBASE_PRIVATE_KEY")
+if (!process.env.NEXT_GOOGLE_ID) throw new Error("Missing NEXT_GOOGLE_ID")
+if (!process.env.NEXT_GOOGLE_SECRET) throw new Error("Missing NEXT_GOOGLE_SECRET")
+
 export const authOptions = {
   // Configure one or more authentication providers
-  adapter: FirestoreAdapter({
-    credential: cert({
-      projectId: process.env.NEXT_FIREBASE_PROJECT_ID,
-      clientEmail: process.env.NEXT_FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.NEXT_FIREBASE_PRIVATE_KEY,
-    }),
-  }),
+
   providers: [
     GoogleProvider({
-      clientId: process.env.NEXT_GOOGLE_ID||"",
-      clientSecret: process.env.NEXT_GOOGLE_SECRET || "",
+      clientId: process.env.NEXT_GOOGLE_ID,
+      clientSecret: process.env.NEXT_GOOGLE_SECRET,
       
       authorization: {
         
@@ -32,6 +31,6 @@ export const authOptions = {
   secret: process.env.NEXT_JWT_SECRET,
   
 }
-const handler = NextAuth(authOptions)
+const handler:any = NextAuth(authOptions)
 
 export {handler as GET, handler as POST}
