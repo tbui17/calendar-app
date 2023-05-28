@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-import { authOptions } from '../auth/[...nextauth]/route';
-import { getServerSession } from 'next-auth';
-
 export async function POST(request: Request) {
   const res:any = await request.json();
   return new NextResponse("asd", {
