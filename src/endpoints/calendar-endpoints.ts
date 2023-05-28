@@ -3,7 +3,7 @@ const SINGLECALENDARENDPOINT = {
 	getData: "getData",
 } as const;
 
-const APIENDPOINT = "http:localhost:3000/api/googleCalendar/";
+const APIENDPOINT = "/api/googleCalendar/";
 type PreEndpointsType = typeof SINGLECALENDARENDPOINT;
 type CalendarEndpointsType = {
 	[K in keyof PreEndpointsType]: `${typeof APIENDPOINT}${PreEndpointsType[K]}`;
