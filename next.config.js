@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-
+    experimental:{
+      serverActions:true,
+    },
       typescript: {
         // !! WARN !!
         // Dangerously allow production builds to successfully complete even if
@@ -8,6 +10,5 @@ const nextConfig = {
         // !! WARN !!
         ignoreBuildErrors: true,
       },
-}
-
-module.exports = nextConfig
+    }
+exports = nextConfig
