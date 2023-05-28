@@ -4,7 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 export async function GET(request: NextRequest) {
     const tokenCookie = request.cookies.get("next-auth.session-token")
     if (!tokenCookie){
-        return NextResponse.redirect("/api/auth/signin")
+        return NextResponse.error()
     }
     const c = await CalendarClient.fromSessionToken(tokenCookie.value)
     if (c instanceof Error){
