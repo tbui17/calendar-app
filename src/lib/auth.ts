@@ -1,6 +1,6 @@
 import { FirestoreAdapter } from "@next-auth/firebase-adapter";
 import GoogleProvider from "next-auth/providers/google";
-import NextAuth, { type NextAuthOptions } from "next-auth"
+import { type NextAuthOptions } from "next-auth"
 import { cert } from "firebase-admin/app";
 
 // if (!process.env.NEXT_FIREBASE_PROJECT_ID) throw new Error("Missing NEXT_FIREBASE_PROJECT_ID")
@@ -44,6 +44,3 @@ export const authOptions: NextAuthOptions = {
   
   
 }
-const handler = NextAuth(authOptions)
-
-export {handler as GET, handler as POST}
