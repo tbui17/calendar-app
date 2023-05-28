@@ -37,15 +37,15 @@ export class FirebaseClient {
 		this.db = db;
 	}
 
-	async queryDbSingle<T>(params: QueryParams): Promise<DatabaseRetrieveNoResultError | ISingleDocumentDataResponse<T>> {
+	async queryDbSingle<TRecord extends Record<string,any>>(params: QueryParams): Promise<DatabaseRetrieveNoResultError | ISingleDocumentDataResponse<TRecord>> {
 		const docs = await this.queryDb(params);
 		if (docs instanceof Error){
 			return docs
 		}
 		const doc = docs[0];
-		const response: ISingleDocumentDataResponse<T> = {
+		const response: ISingleDocumentDataResponse<TRecord> = {
 			documentId: doc.id,
-			data: doc.data() as T,
+			data: doc.data() as TRecord,
 		};
 		return response;
 	}
@@ -56,14 +56,14 @@ export class FirebaseClient {
 			usersRef,
 			where(params.field, params.operator, params.value)
 		);
-
 		const querySnapshot = await getDocs(q);
-		if (!querySnapshot.empty) {
-			return querySnapshot.docs;
-		} else {
+		
+		if (querySnapshot.empty) {
 			console.log("No result found for query.");
 			return new DatabaseRetrieveNoResultError("No result found for query.")
 		}
+		
+		return querySnapshot.docs
 	}
 
 	async createOrUpdate<T extends Record<string, any> = Record<string, any>>(
@@ -163,3 +163,4 @@ export const fbClient = new FirebaseClient();
 //     console.log(client)
 // }
 // main()
+

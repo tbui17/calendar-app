@@ -72,3 +72,5 @@ export type ISession = {
 	sessionToken: string
 	userId: string
 }
+
+
