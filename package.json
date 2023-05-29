@@ -42,6 +42,7 @@
     "firebase": "^9.22.0",
     "firebase-admin": "^11.8.0",
     "fs": "^0.0.1-security",
+    "fullcalendar": "^6.1.8",
     "googleapis": "105",
     "http-shutdown": "^1.2.2",
     "jquery": "^3.7.0",
