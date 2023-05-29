@@ -8,9 +8,9 @@ import {
 	IUser,
 	IVerifiedAppInfo,
 } from "./types";
-import { QueryParams, fbClient } from "./firebase-client";
 
 import { OAuth2Client } from "google-auth-library";
+import { QueryParams } from "./firebase-client";
 import { TEST_USER } from "./test-data";
 import { authenticate } from "@google-cloud/local-auth";
 import axios from "axios";

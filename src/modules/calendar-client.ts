@@ -1,5 +1,5 @@
 import { Auth, calendar_v3, google } from 'googleapis';
-import { FirebaseClient, QueryParams, fbClient } from '@/backend/modules/firebase-client';
+import { FirebaseClient, QueryParams } from '@/backend/modules/firebase-client';
 
 import { GaxiosResponse } from 'gaxios';
 import { ISingleDocumentDataResponse } from '@/backend/modules/types';
@@ -9,13 +9,19 @@ import { makeOAuth2Client } from '../backend/modules/google-api-auth';
 export type Schema$Event = calendar_v3.Schema$Event;
 export type Schema$Events = calendar_v3.Schema$Events;
 
-const refreshDate = new Date("2023-05-01")
-const refreshDateEnd = new Date(refreshDate.getTime())// TODO do not leave this as is in prod, process will be long running and date will not be updated.
-refreshDateEnd.setMonth(refreshDateEnd.getMonth() + 1) 
-const refreshDateStr = refreshDate.toISOString();
-const refreshDateEndStr = refreshDateEnd.toISOString()
 
 
+function dates(){
+	const refreshDate = new Date("2023-05-01")
+	const refreshDateEnd = new Date(refreshDate.getTime())// TODO do not leave this as is in prod, process will be long running and date will not be updated.
+	refreshDateEnd.setMonth(refreshDateEnd.getMonth() + 1) 
+	const refreshDateStr = refreshDate.toISOString();
+	const refreshDateEndStr = refreshDateEnd.toISOString()
+	return {
+		refreshDateStr,
+		refreshDateEndStr
+	}
+}
 
 
 
@@ -34,7 +40,7 @@ export class CalendarClient {
 		const res: GaxiosResponse<calendar_v3.Schema$Events> =
 			await calendar.events.list({
 				calendarId: "primary",
-				timeMin: refreshDateStr,
+				timeMin: dates().refreshDateEndStr,
 				maxResults: 10,
 				singleEvents: true,
 				orderBy: "startTime",
@@ -59,8 +65,8 @@ export class CalendarClient {
 	async getAllEvents() {
 		const res = await this.cal.events.list({
 			calendarId: "primary",
-			timeMin: refreshDateStr,
-      timeMax: refreshDateEndStr,
+			timeMin: dates().refreshDateStr,
+      		timeMax: dates().refreshDateEndStr,
 			maxResults: 500,
 			singleEvents: true,
 			orderBy: "startTime",
@@ -94,6 +100,7 @@ export class CalendarClient {
 	}
 
 	static async fromUserEmail(email:string){
+		const fbClient = "" as unknown as FirebaseClient
 		const info = await fbClient.getUserAccountFromEmail(email)
 		if (info instanceof Error){
 			return info
@@ -102,6 +109,7 @@ export class CalendarClient {
 		return new CalendarClient(access_token,refresh_token)
 	}
 	static async fromSessionToken(sessionToken:string){
+		const fbClient = "" as unknown as FirebaseClient
 		const info = await fbClient.getTokeninfoFromSessionToken(sessionToken)
 		if (info instanceof Error){
 			return info

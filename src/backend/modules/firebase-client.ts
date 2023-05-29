@@ -135,32 +135,3 @@ export class FirebaseClient {
 
 
 }
-
-export const fbClient = new FirebaseClient();
-
-// async function getUserIdByEmail<T = DocumentData>(email: string) {
-// 	const usersRef = collection(db, "users");
-// 	const q = query(usersRef, where("email", "==", email));
-
-// 	const querySnapshot = await getDocs(q);
-// 	if (!querySnapshot.empty) {
-// 		const doc = querySnapshot.docs[0]; // Get the first document
-// 		const { id } = doc;
-// 		const data = doc.data() as T;
-// 		const response: IUserDataResponse<T> = {
-// 			documentId: id,
-// 			data,
-// 		};
-// 		return response;
-// 	} else {
-// 		console.log("No user found with that email");
-// 		return null;
-// 	}
-// }
-
-// async function main(){
-//     const client = new FirebaseClient()
-//     console.log(client)
-// }
-// main()
-
