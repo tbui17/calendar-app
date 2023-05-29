@@ -1,1 +1,0 @@
-export const TEST_USER = "duythienbui@gmail.com";
