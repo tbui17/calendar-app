@@ -7,10 +7,9 @@ import TestComponent from "@/components/test-component";
 export default function TestPage() {
 	return (
 		<>
-			
 			<Form1 />
 			<TestComponent />
-			<BasicCard text="test12345"/>
+			<BasicCard text="test12345" />
 		</>
 	);
 }
