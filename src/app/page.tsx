@@ -12,7 +12,7 @@ export default function Home() {
 	// const { data } = session;
 
 
-	return <CalendarApp />
+	return <p>hello world</p>
 
 	// if (data) {
 	// 	console.log(data)
