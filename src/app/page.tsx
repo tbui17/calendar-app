@@ -12,6 +12,7 @@ export default function Home() {
 
   return( <div>
     <div>
+      <p>a</p>
       <AuthForm/>
   </div>
   <CalendarApp/>
