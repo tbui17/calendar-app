@@ -130,7 +130,7 @@ export const CalendarApp = () => {
 			<div
 			
 				className="ag-theme-alpine-dark"
-				style={{ height: 400, width: 2000 }}
+				style={{ height: 1000, width: 2000 }}
 			>
 				<AgGridReact rowData={rowData} columnDefs={columnDefs} />
 				
