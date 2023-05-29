@@ -7,11 +7,7 @@ import { fbClient } from '@/backend/modules/firebase-client';
 export type Schema$Event = calendar_v3.Schema$Event;
 export type Schema$Events = calendar_v3.Schema$Events;
 
-const refreshDate = new Date("2023-05-01")
-const refreshDateEnd = new Date(refreshDate.getTime())// TODO do not leave this as is in prod, process will be long running and date will not be updated.
-refreshDateEnd.setMonth(refreshDateEnd.getMonth() + 1) 
-const refreshDateStr = refreshDate.toISOString();
-const refreshDateEndStr = refreshDateEnd.toISOString()
+
 
 
 
@@ -32,7 +28,7 @@ export class CalendarClient {
 		const res: GaxiosResponse<calendar_v3.Schema$Events> =
 			await calendar.events.list({
 				calendarId: "primary",
-				timeMin: refreshDateStr,
+				
 				maxResults: 10,
 				singleEvents: true,
 				orderBy: "startTime",
@@ -57,8 +53,7 @@ export class CalendarClient {
 	async getAllEvents() {
 		const res = await this.cal.events.list({
 			calendarId: "primary",
-			timeMin: refreshDateStr,
-      timeMax: refreshDateEndStr,
+
 			maxResults: 500,
 			singleEvents: true,
 			orderBy: "startTime",

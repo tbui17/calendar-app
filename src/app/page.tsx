@@ -2,8 +2,6 @@
 
 import { signIn, signOut, useSession } from "next-auth/react";
 
-import { CalendarApp } from "../components/calendar-components/calendar";
-
 // Import the functions you need from the SDKs you need
 
 
