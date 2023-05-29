@@ -1,12 +1,9 @@
 "use client";
 
-import { ICalendarData, ITransformedEvent } from "@/modules/types";
 import React, { useState } from "react";
 import interactionPlugin, { DateClickArg } from "@fullcalendar/interaction"; // needed for dayClick
 
 import FullCalendar from "@fullcalendar/react"; // must go before plugins
-import axios from "axios";
-import { calendarEndpoints } from "@/endpoints/calendar-endpoints";
 import dayGridPlugin from "@fullcalendar/daygrid"; // a plugin!
 import multiMonthPlugin from '@fullcalendar/multimonth'
 
