@@ -2,54 +2,28 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
+/* :root {
   --foreground-rgb: 0, 0, 0;
   --background-start-rgb: 214, 219, 220;
   --background-end-rgb: 255, 255, 255;
+} */
+
+:root {
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 0, 0, 0;
+  --background-end-rgb: 0, 0, 0;
+  
 }
 
-@media (prefers-color-scheme: dark) {
+/* @media (prefers-color-scheme: dark) {
   :root {
     --foreground-rgb: 255, 255, 255;
     --background-start-rgb: 0, 0, 0;
     --background-end-rgb: 0, 0, 0;
     
   }
-  .fc {
-    background-color: #2c2c2c;
-    color: #ffffff;
-}
 
-.fc-button {
-    background-color: #4a4a4a;
-    color: #ffffff;
-}
-
-.fc-event {
-    background-color: #ff5a5a;
-    color: #ffffff;
-}
-
-.fc-today {
-    background-color: #4a4a4a;
-}
-
-.fc-day {
-    color: "white";
-}
-
-.fc-daygrid-day-frame.fc-scrollgrid-sync-inner{
-  background-color: #2c2c2c;
-}
-
-.fc-multimonth-title{
-  background-color: #2c2c2c;
-}
-.fc-scrollgrid-sync-inner{
-  background-color: #2c2c2c;
-}
-
-}
+} */
 
 body {
   color: rgb(var(--foreground-rgb));

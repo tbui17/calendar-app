@@ -4,19 +4,31 @@ import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import 'react-toastify/dist/ReactToastify.css';
 
-import { IEvent, ITransformedEvent } from "@/modules/types";
-import React, { useState } from "react";
+import React, { ChangeEvent, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
+import { oneMonthAheadYYYYMMDD, oneMonthBehindYYYYMMDD } from "@/utils/date-functions";
+import { signOut, useSession } from "next-auth/react";
 
 import { AgGridReact } from "ag-grid-react";
 import { ColDef } from "ag-grid-community";
+import { DatePicker } from './date-picker';
+import {ITransformedEvent} from "@/modules/types";
 import { WebCalendarClient } from "@/modules/web-calendar-client";
-import axios from "axios";
-import { calendarEndpoints } from "@/endpoints/calendar-endpoints";
-import { useSession } from "next-auth/react";
 
 export const CalendarApp = () => {
 	const session = useSession()
+	const [startDate, setStartDate] = useState(oneMonthBehindYYYYMMDD());
+	const [endDate, setEndDate] = useState(oneMonthAheadYYYYMMDD());
+
+	const handleStartDate = (e:ChangeEvent<HTMLInputElement>) => {
+		setStartDate(e.target.value);
+	  };
+
+	  const handleEndDate = (e:ChangeEvent<HTMLInputElement>) => {
+		setEndDate(e.target.value);
+	  };
+
+	
 	const defaultData: ITransformedEvent[] = [
 		{
 			id: "1",
@@ -64,14 +76,21 @@ export const CalendarApp = () => {
 	const handleSyncClick = async () => {
 		// @ts-ignore
 		const token:string = (session.data.access_token)
-		const events = await new WebCalendarClient(token).getAllEvents()
-		if (!events){
-			console.error("No events found")
-			toast("No events found")
-			return
+		try {
+			
+			
+			const events = await new WebCalendarClient(token).getAllEvents(new Date(startDate), new Date(endDate))
+			if (!events){
+				console.error("No events found")
+				toast("No events found")
+				return
+			}
+			toast("Events retrieved")
+			setRowData(events)
+		} catch (error) {
+			console.error(error)
+			signOut()
 		}
-		toast("Events retrieved")
-		setRowData(events)
 		
 		
 	};
@@ -80,7 +99,24 @@ export const CalendarApp = () => {
 	return (
 		<div>
 			<div>
-			
+				<div>
+				
+
+				
+
+				</div>
+				
+      
+				<DatePicker id="startDate" value={startDate} onChange={handleStartDate} name="from"/>
+				
+				
+	  
+    
+				<div>
+				<DatePicker id="endDate" value={endDate} onChange={handleEndDate} name="to" />
+				
+				</div>
+
 				<button
 					onClick={handleSyncClick}
 					type="button"
@@ -88,6 +124,7 @@ export const CalendarApp = () => {
 				>
 					Fetch Data
 				</button>
+				
 			</div>
 
 			<div

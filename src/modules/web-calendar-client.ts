@@ -1,4 +1,5 @@
 import axios, { AxiosInstance } from "axios"
+import { oneMonthAhead, oneMonthBehind } from "@/utils/date-functions";
 
 import { ITransformedEvent } from "./types";
 
@@ -15,12 +16,12 @@ export class WebCalendarClient {
 	}
 
 
-	async getAllEvents() {
+	async getAllEvents(startDate:Date=oneMonthBehind(), endDate:Date=oneMonthAhead()) {
 		const res = await this.instance.get<Record<string,any>>("https://www.googleapis.com/calendar/v3/calendars/primary/events", {
             params: {
                 calendarId: "primary",
-                timeMin: new Date(new Date().setDate(new Date().getDate() - 31)).toISOString(),
-                timeMax: new Date(new Date().setDate(new Date().getDate() + 31)).toISOString(),
+                timeMin: startDate.toISOString(),
+                timeMax: endDate.toISOString(),
                 maxResults: 500,
                 singleEvents: true,
                 orderBy: "startTime",
