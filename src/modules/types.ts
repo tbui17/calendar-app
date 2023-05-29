@@ -20,10 +20,17 @@ export type IHasToken = {
 
 export type ITransformedEvent = {
     id: string;
-    start?: string | null | undefined;
-    end?: string | null | undefined;
-    summary?: string | null | undefined;
-    description?: string | null | undefined;
+    start: Date | null
+    end: Date | null
+    summary: string
+    description: string
 }
 
+export type IEvent = {
+    id?: string,
+    start?: Date | null,
+    end?: Date | null,
+    summary?: string,
+    description?: string,
+}
 

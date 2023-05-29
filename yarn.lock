@@ -708,12 +708,7 @@
   dependencies:
     preact "~10.12.1"
 
-"@fullcalendar/daygrid@^6.1.7":
-  version "6.1.7"
-  resolved "https://registry.npmjs.org/@fullcalendar/daygrid/-/daygrid-6.1.7.tgz"
-  integrity sha512-IB+QdRcs+TeTlsK8qJFtYZ/2GugmXEFC0C00/n1aLT7GLgFn3ueV1GN0EKvXv9HJ5ai8My65mYbSyQizY/Ishw==
-
-"@fullcalendar/daygrid@~6.1.8":
+"@fullcalendar/daygrid@^6.1.7", "@fullcalendar/daygrid@~6.1.8":
   version "6.1.8"
   resolved "https://registry.npmjs.org/@fullcalendar/daygrid/-/daygrid-6.1.8.tgz"
   integrity sha512-kCZxQFKb9Vqa3CZRX0v7rMSJ2mlTt4gDpyLfiNJKxUAq7W51uKurPaFZWicaXy1ESHVBxKNlbx5uNjBpyu50JQ==
@@ -728,19 +723,14 @@
   resolved "https://registry.npmjs.org/@fullcalendar/icalendar/-/icalendar-6.1.7.tgz"
   integrity sha512-SYn9JmgKiPbY/EpIzoNwiENS6Ae1YyXlCAEwoDE0t15Z8xfAMqdupkIi8XU4X5nTMbPy4QS+cC0FuTPVSwPjYw==
 
-"@fullcalendar/interaction@^6.1.7":
-  version "6.1.7"
-  resolved "https://registry.npmjs.org/@fullcalendar/interaction/-/interaction-6.1.7.tgz"
-  integrity sha512-C2KHSinc9cFUTcGYxRSIj7cBYNSroce+1d2Wa+HKVHguVv4kQuEvm/oPxJpTLXqFjNLfxyxVac7Zd4U0znjFtg==
-
-"@fullcalendar/interaction@~6.1.8":
+"@fullcalendar/interaction@^6.1.7", "@fullcalendar/interaction@~6.1.8":
   version "6.1.8"
-  resolved "https://registry.yarnpkg.com/@fullcalendar/interaction/-/interaction-6.1.8.tgz#36c35bd5718f893e8215a45d48a6ef7d5fcc4650"
+  resolved "https://registry.npmjs.org/@fullcalendar/interaction/-/interaction-6.1.8.tgz"
   integrity sha512-r6W4E9ohaA87M2uPSlmpE2WT7Fzu7LN0u2pE6D/tThruCEaAPbN8Pw5+sqclsuyTIL09mg0eSJm/ggJekTabSA==
 
 "@fullcalendar/list@~6.1.8":
   version "6.1.8"
-  resolved "https://registry.yarnpkg.com/@fullcalendar/list/-/list-6.1.8.tgz#69e5efba0cb8416955a3ad1cd7d550345ffaa16d"
+  resolved "https://registry.npmjs.org/@fullcalendar/list/-/list-6.1.8.tgz"
   integrity sha512-10N0T/vCtId1cE3JGLpnbAivWVnaWCCkVO7wmbsyr5Y+I939kr/zq4BUNwBoP/xSFVVxx59FETh3iyA+MkV8Fw==
 
 "@fullcalendar/multimonth@^6.1.8", "@fullcalendar/multimonth@~6.1.8":
@@ -757,7 +747,7 @@
 
 "@fullcalendar/timegrid@~6.1.8":
   version "6.1.8"
-  resolved "https://registry.yarnpkg.com/@fullcalendar/timegrid/-/timegrid-6.1.8.tgz#30b9860eb900c5dc9b72ceaab98c0728018a0ff1"
+  resolved "https://registry.npmjs.org/@fullcalendar/timegrid/-/timegrid-6.1.8.tgz"
   integrity sha512-3+3KHHCoNcaLs/gQt004hAqICbY5+WAffrZ0ePv+80HFB1OVh8BQ5XXLHSOUbTvXdgtUTcfBHuw9fhO31kt5gA==
   dependencies:
     "@fullcalendar/daygrid" "~6.1.8"
@@ -1572,6 +1562,18 @@ acorn@^8.4.1, acorn@^8.8.0, acorn@^8.8.2:
   version "8.8.2"
   resolved "https://registry.npmjs.org/acorn/-/acorn-8.8.2.tgz"
   integrity sha512-xjIYgE8HBrkpd/sJqOGNspf8uHG+NOHGOw6a/Urj8taM2EXfdNAH2oFcPeIFfsv3+kz/mJrS5VuMqbNLjCa2vw==
+
+ag-grid-community@^29.3.5:
+  version "29.3.5"
+  resolved "https://registry.npmjs.org/ag-grid-community/-/ag-grid-community-29.3.5.tgz"
+  integrity sha512-LxUo21f2/CH31ACEs1C7Q/ggGGI1fQPSTB4aY5OThmM+lBkygZ7QszBE8jpfgWOIjvjdtcdIeQbmbjkHeMsA7A==
+
+ag-grid-react@^29.3.5:
+  version "29.3.5"
+  resolved "https://registry.npmjs.org/ag-grid-react/-/ag-grid-react-29.3.5.tgz"
+  integrity sha512-Eg0GJ8hEBuxdVaN5g+qITOzhw0MGL9avL0Oaajr+p7QRtq2pIFHLZSknWsCBzUTjidiu75WZMKwlZjtGEuafdQ==
+  dependencies:
+    prop-types "^15.8.1"
 
 agent-base@6:
   version "6.0.2"
@@ -3472,7 +3474,7 @@ fsevents@~2.3.2:
 
 fullcalendar@^6.1.8:
   version "6.1.8"
-  resolved "https://registry.yarnpkg.com/fullcalendar/-/fullcalendar-6.1.8.tgz#52b5c73b6214713dbe446587acd4a3feb1f0c4bf"
+  resolved "https://registry.npmjs.org/fullcalendar/-/fullcalendar-6.1.8.tgz"
   integrity sha512-cbIdnInHVjj3fWqGgurbRuo8EFViVcEKpI2NZpGkzaqpnvN0p1ifKyQ9qnSGS2bKr7733z8Tv8T+CRXfnEWVmw==
   dependencies:
     "@fullcalendar/core" "~6.1.8"
@@ -5536,6 +5538,16 @@ prelude-ls@~1.1.2:
   version "1.1.2"
   resolved "https://registry.npmjs.org/prelude-ls/-/prelude-ls-1.1.2.tgz"
   integrity sha512-ESF23V4SKG6lVSGZgYNpbsiaAkdab6ZgOxe52p7+Kid3W3u3bxR4Vfd/o21dmN7jSt0IwgZ4v5MUd26FEtXE9w==
+
+prettier-plugin-tailwindcss@^0.3.0:
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/prettier-plugin-tailwindcss/-/prettier-plugin-tailwindcss-0.3.0.tgz#8299b307c7f6467f52732265579ed9375be6c818"
+  integrity sha512-009/Xqdy7UmkcTBpwlq7jsViDqXAYSOMLDrHAdTMlVZOrKfM2o9Ci7EMWTMZ7SkKBFTG04UM9F9iM2+4i6boDA==
+
+prettier@^2.8.8:
+  version "2.8.8"
+  resolved "https://registry.yarnpkg.com/prettier/-/prettier-2.8.8.tgz#e8c5d7e98a4305ffe3de2e1fc4aca1a71c28b1da"
+  integrity sha512-tdN8qQGvNjw4CHbY+XXk0JgCXn9QiF21a55rBe5LJAU+kDyC4WQn4+awm2Xfk2lQMk5fKup9XgzTZtGkjBdP9Q==
 
 pretty-format@^27.5.1:
   version "27.5.1"

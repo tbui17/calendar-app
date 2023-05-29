@@ -1,5 +1,8 @@
 "use client";
 
+import 'ag-grid-community/styles/ag-grid.css';
+import 'ag-grid-community/styles/ag-theme-alpine.css';
+
 import { signIn, signOut, useSession } from "next-auth/react";
 
 import { CalendarApp } from "../components/calendar-components/calendar";
@@ -8,7 +11,7 @@ import { CalendarApp } from "../components/calendar-components/calendar";
 
 
 export default function Home() {
-	const session = useSession();
+	const session = useSession({required:true});
 	const { data } = session;
 
 	if (data) {

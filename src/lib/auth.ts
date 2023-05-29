@@ -16,14 +16,7 @@ if (!process.env.GOOGLE_ID) throw new Error("Missing GOOGLE_ID")
 if (!process.env.GOOGLE_SECRET) throw new Error("Missing GOOGLE_SECRET")
 
 export const authOptions: NextAuthOptions = {
-  adapter: FirestoreAdapter({
-    credential: cert({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY,
-      
-    }),
-  }),
+
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_ID,
@@ -40,6 +33,21 @@ export const authOptions: NextAuthOptions = {
       }
     })
   ],
+  callbacks: {
+    async jwt({token, account}) {
+      if (account) {
+        token = Object.assign({}, token, { access_token: account.access_token });
+      }
+      return token
+    },
+    async session({session, token}) {
+    if(session) {
+      session = Object.assign({}, session, {access_token: token.access_token})
+      
+      }
+    return session
+    }
+  }
   
   
   

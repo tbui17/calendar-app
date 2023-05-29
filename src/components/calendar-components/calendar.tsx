@@ -1,77 +1,104 @@
 "use client";
-import FullCalendar from "@fullcalendar/react"; // must go before plugins
-import { ICalendarData, ITransformedEvent } from "@/modules/types";
+
+import "ag-grid-community/styles/ag-grid.css";
+import "ag-grid-community/styles/ag-theme-alpine.css";
+import 'react-toastify/dist/ReactToastify.css';
+
+import { IEvent, ITransformedEvent } from "@/modules/types";
 import React, { useState } from "react";
-import interactionPlugin, { DateClickArg } from "@fullcalendar/interaction"; // needed for dayClick
+import { ToastContainer, toast } from "react-toastify";
 
-
+import { AgGridReact } from "ag-grid-react";
+import { ColDef } from "ag-grid-community";
+import { WebCalendarClient } from "@/modules/web-calendar-client";
 import axios from "axios";
 import { calendarEndpoints } from "@/endpoints/calendar-endpoints";
-import dayGridPlugin from "@fullcalendar/daygrid"; // a plugin!
-import multiMonthPlugin from '@fullcalendar/multimonth'
-
-const defaultEvents = [
-	{ title: "event 1", date: "2023-04-06" },
-	{ title: "event 2", date: "2023-04-05" },
-]
+import { useSession } from "next-auth/react";
 
 export const CalendarApp = () => {
-	const [events, setEvents] = useState(defaultEvents);
-	
+	const session = useSession()
+	const defaultData: ITransformedEvent[] = [
+		{
+			id: "1",
+			description: "description default",
+			summary: "summary default",
+			start: new Date("07-01-2023"),
+			end: new Date("07-02-2023"),
+		},
+		{
+			id: "2",
+			description: "description default2",
+			summary: "summary default2",
+			start: new Date("07-04-2023"),
+			end: new Date("07-05-2023"),
+		},
+	];
+	const defaultColumnDefs: ColDef[] = [
+		{ field: "id", sortable: true, filter: true },
+		{ field: "description", sortable: true, filter: true },
+		{ field: "summary", sortable: true, filter: true },
+		{ field: "start", sortable: true, filter: "agDateColumnFilter" },
+		{ field: "end", sortable: true, filter: "agDateColumnFilter" },
+	];
+
 
 	
-	const handleDateClick = (arg: DateClickArg) => {
-		// bind with an arrow function
-		alert(arg);
-	};
-	
+
+	const [rowData, setRowData] = useState<ITransformedEvent[]>(defaultData);
+	const [columnDefs, setColumnDefs] = useState<ColDef[]>(defaultColumnDefs);
+
+	// const handleSyncClick = async () => {
+	// 	console.log("Retrieving data...");
+	// 	try {
+	// 		const results = (
+	// 			await axios.get<{ result: ITransformedEvent[] }>(
+	// 				calendarEndpoints.getData
+	// 			)
+	// 		).data.result;
+	// 		setRowData(results);
+	// 	} catch (error) {
+	// 		console.error(error);
+	// 	}
+	// };
+
 	const handleSyncClick = async () => {
-		console.log("Retrieving data...");
-		const results = (await axios.get<{result:ITransformedEvent[]}>(calendarEndpoints.getData)).data.result
-		const transformedResult: ICalendarData[] = [];
-		for (const result of results) {
-			if (!result.summary || !result.start) {
-				throw new Error("Invalid data");
-			}
-      if (!result.description){
-        result.description = "";
-      }
-			transformedResult.push({
-				title: result.summary,
-				date: result.start,	
-        description: result.description,
-			});
+		// @ts-ignore
+		const token:string = (session.data.access_token)
+		const events = await new WebCalendarClient(token).getAllEvents()
+		if (!events){
+			console.error("No events found")
+			toast("No events found")
+			return
 		}
-	
-    setEvents(transformedResult);
+		toast("Events retrieved")
+		setRowData(events)
+		
+		
 	};
+	
 
 	return (
 		<div>
-		
-		<FullCalendar
-			plugins={[dayGridPlugin, interactionPlugin, multiMonthPlugin]}
-			initialView="multiMonthYear"
-			weekends={true}
-			dateClick={handleDateClick}
-			events={events}
+			<div>
 			
-			headerToolbar={{
-				start: "customButton prev,next today",
-				center: "title",
-				end: "dayGridMonth,timeGridWeek,timeGridDay",
+				<button
+					onClick={handleSyncClick}
+					type="button"
+					className="mb-2 mr-2 rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+				>
+					Fetch Data
+				</button>
+			</div>
+
+			<div
+			
+				className="ag-theme-alpine-dark"
+				style={{ height: 400, width: 2000 }}
+			>
+				<AgGridReact rowData={rowData} columnDefs={columnDefs} />
 				
-			}}
-			
-			multiMonthMaxColumns={1}
-			customButtons={{
-				customButton: {
-					text: "Sync",
-					click: handleSyncClick,
-				},
-			}}
-		/>
+			</div>
+			<ToastContainer theme="dark"/> 
 		</div>
-		
 	);
 };

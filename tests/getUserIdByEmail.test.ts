@@ -1,4 +1,4 @@
-import { QueryParams, fbClient } from "src/backend/modules/firebase-client";
+import { QueryParams, fbClient } from "@/backend/modules/firebase-client";
 import {describe, expect, it} from "vitest"
 
 import { TEST_USER } from "src/backend/modules/test-data";
