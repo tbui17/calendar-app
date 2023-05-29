@@ -12,7 +12,7 @@ export default function Home() {
 	const { data } = session;
 
 	if (data) {
-		console.log(data)
+		
 		return (
 			<div>
 				<p>Welcome {data.user?.email}</p>

@@ -1,19 +1,14 @@
 import { Auth, calendar_v3, google } from 'googleapis';
-import { FirebaseClient, QueryParams, fbClient } from '@/backend/modules/firebase-client';
 
 import { GaxiosResponse } from 'gaxios';
-import { ISingleDocumentDataResponse } from '@/backend/modules/types';
 import { ITransformedEvent } from './types';
+import { fbClient } from '@/backend/modules/firebase-client';
 import { makeOAuth2Client } from '../backend/modules/google-api-auth';
 
 export type Schema$Event = calendar_v3.Schema$Event;
 export type Schema$Events = calendar_v3.Schema$Events;
 
-const refreshDate = new Date("2023-05-01")
-const refreshDateEnd = new Date(refreshDate.getTime())// TODO do not leave this as is in prod, process will be long running and date will not be updated.
-refreshDateEnd.setMonth(refreshDateEnd.getMonth() + 1) 
-const refreshDateStr = refreshDate.toISOString();
-const refreshDateEndStr = refreshDateEnd.toISOString()
+
 
 
 
@@ -29,12 +24,13 @@ export class CalendarClient {
 		
 		this.cal = google.calendar({ version: "v3", auth:this.auth });
 	}
+	
 	async listEvents() {
 		const calendar = this.cal;
 		const res: GaxiosResponse<calendar_v3.Schema$Events> =
 			await calendar.events.list({
 				calendarId: "primary",
-				timeMin: refreshDateStr,
+				// timeMin: refreshDateStr,
 				maxResults: 10,
 				singleEvents: true,
 				orderBy: "startTime",
@@ -59,8 +55,8 @@ export class CalendarClient {
 	async getAllEvents() {
 		const res = await this.cal.events.list({
 			calendarId: "primary",
-			timeMin: refreshDateStr,
-      timeMax: refreshDateEndStr,
+	// 		timeMin: refreshDateStr,
+    //   timeMax: refreshDateEndStr,
 			maxResults: 500,
 			singleEvents: true,
 			orderBy: "startTime",

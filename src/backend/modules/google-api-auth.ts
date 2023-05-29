@@ -1,24 +1,12 @@
 import * as fireDb from "firebase/firestore";
 
 import { Auth, calendar_v3, google } from "googleapis";
+
 import {
 	ClientCodeResponse,
-	ICredentials,
-	IUnverifiedAppInfo,
-	IUser,
-	IVerifiedAppInfo,
 } from "./types";
-import { QueryParams, fbClient } from "./firebase-client";
-
 import { OAuth2Client } from "google-auth-library";
-import { TEST_USER } from "./test-data";
-import { authenticate } from "@google-cloud/local-auth";
-import axios from "axios";
 import { db } from "./firebase-setup";
-import dotenv from 'dotenv'
-import http from "http";
-import open from "open";
-import url from "url";
 
 enum ScopeList {
 	// https://developers.google.com/identity/protocols/oauth2/scopes Calendar API, v3
