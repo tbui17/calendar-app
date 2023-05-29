@@ -1,10 +1,8 @@
-import { Auth, calendar_v3, google } from 'googleapis';
-import { FirebaseClient, QueryParams, fbClient } from '@/backend/modules/firebase-client';
+import { calendar_v3, google } from 'googleapis';
 
 import { GaxiosResponse } from 'gaxios';
-import { ISingleDocumentDataResponse } from '@/backend/modules/types';
 import { ITransformedEvent } from './types';
-import { makeOAuth2Client } from '../backend/modules/google-api-auth';
+import { fbClient } from '@/backend/modules/firebase-client';
 
 export type Schema$Event = calendar_v3.Schema$Event;
 export type Schema$Events = calendar_v3.Schema$Events;
@@ -22,12 +20,12 @@ const refreshDateEndStr = refreshDateEnd.toISOString()
 
 export class CalendarClient {
 	public cal: calendar_v3.Calendar;
-	private auth: Auth.OAuth2Client
+	
 	constructor(access_token:string,refresh_token:string) {
-		this.auth = makeOAuth2Client()
-		this.auth.setCredentials({access_token:access_token,refresh_token,scope:"https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.events.readonly https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.settings.readonly"})
 		
-		this.cal = google.calendar({ version: "v3", auth:this.auth });
+		
+		
+		this.cal = google.calendar({ version: "v3"});
 	}
 	async listEvents() {
 		const calendar = this.cal;

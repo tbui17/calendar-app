@@ -1,5 +1,4 @@
 import { Collections, IAccounts as IAccount, ISession, ISingleDocumentDataResponse } from "./types";
-import { DatabaseRetrieveError, DatabaseRetrieveNoResultError } from "./errors";
 import {
 	DocumentData,
 	Firestore,
@@ -13,6 +12,7 @@ import {
 	where,
 } from "firebase/firestore";
 
+import { DatabaseRetrieveNoResultError } from "./errors";
 import { db } from "./firebase-setup";
 
 export class QueryParams {
