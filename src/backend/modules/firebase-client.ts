@@ -13,7 +13,6 @@ import {
 } from "firebase/firestore";
 
 import { DatabaseRetrieveNoResultError } from "./errors";
-import { db } from "./firebase-setup";
 
 export class QueryParams {
 	constructor(
@@ -34,7 +33,7 @@ export class QueryParams {
 export class FirebaseClient {
 	db: Firestore;
 	constructor() {
-		this.db = db;
+		this.db = "" as any
 	}
 
 	async queryDbSingle<TRecord extends Record<string,any>>(params: QueryParams): Promise<DatabaseRetrieveNoResultError | ISingleDocumentDataResponse<TRecord>> {
@@ -71,7 +70,7 @@ export class FirebaseClient {
 		documentId: string,
 		data: T
 	) {
-		const collectionRef = collection(db, collectionPath);
+		const collectionRef = collection(this.db, collectionPath);
 		const docRef = doc(collectionRef, documentId);
 
 		// Set/update the refreshToken for the user
