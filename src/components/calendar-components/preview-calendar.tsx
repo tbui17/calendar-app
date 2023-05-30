@@ -26,6 +26,22 @@ export const PreviewCalendarApp = () => {
 		setEndDate(e.target.value);
 	  };
 
+      const defaultData2 = [
+        {
+            id: "155",
+            description: "Meeting",
+            summary: "Meeting with the CEO.",
+            start: new Date("07-17-2023"),
+            end: new Date("07-18-2023"),
+          },
+          {
+            id: "244",
+            description: "Shopping",
+            summary: "Go shopping at the mall.",
+            start: new Date("07-19-2023"),
+            end: new Date("07-20-2023"),
+          },
+      ]
 	
       const defaultData = [
         {
@@ -98,6 +114,7 @@ export const PreviewCalendarApp = () => {
           start: new Date("07-19-2023"),
           end: new Date("07-20-2023"),
         },
+        
       ];
       
 	const defaultColumnDefs: ColDef[] = [
@@ -118,10 +135,15 @@ export const PreviewCalendarApp = () => {
 
 	const handleSyncClick = async () => {
 		
-		toast("Preview version. Events not retrieved.")
+		toast("Mock Data 1")
 		
-		
+		setRowData(defaultData)
 	};
+    const handleSyncClick2 = async () => {
+        toast("Mock Data 2")
+        setRowData(defaultData2)
+    }
+
 	
 
 	return (
@@ -129,7 +151,9 @@ export const PreviewCalendarApp = () => {
 			<div>
 				<div>
 				
-
+                
+                    <p>Must use Google API with signed in version to use date range functionality.</p>
+                
 				
 
 				</div>
@@ -150,8 +174,17 @@ export const PreviewCalendarApp = () => {
 					type="button"
 					className="mb-2 mr-2 rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
 				>
-					Fetch Data
+					Fetch Data 1
 				</button>
+
+                <button
+					onClick={handleSyncClick2}
+					type="button"
+					className="mb-2 mr-2 rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+				>
+					Fetch Data 2
+				</button>
+
 				
 			</div>
 
