@@ -11,7 +11,8 @@ import { CalendarApp } from "../components/calendar-components/calendar";
 
 
 export default function Home() {
-	const session = useSession({required:true});
+	const session = useSession();
+	// const session = useSession({required:true}); // use this when no longer WIP. Current implementation for checking if user is logged in loads the page briefly before showing the not signed in page. Using required:true will make a smoother transition.
 	const { data } = session;
 
 	if (data) {
@@ -38,7 +39,7 @@ export default function Home() {
 		return (
 			<div>
 				<div>
-					Please do not use your real google account. This is a WIP.
+					Please do not use your real google account. This is a WIP. Or go to <a href="/preview" className="font-medium text-blue-600 dark:text-blue-500 hover:underline">preview link</a>
 				</div>
 				<p>Not signed in.</p>
 				<button
