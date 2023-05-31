@@ -37,6 +37,9 @@ export default function Home() {
 	} else {
 		return (
 			<div>
+				<div>
+					Please do not use your real google account. This is a WIP.
+				</div>
 				<p>Not signed in.</p>
 				<button
 					title="Sign in"
