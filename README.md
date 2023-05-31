@@ -1,6 +1,9 @@
 **WIP WIP WIP**
 
-**Please do not use a real account. Use a dummy account or use the preview link calendar-app-xi.vercel.app/preview**
+**Please do not use a real account. Use a dummy account or use the [preview link](https://calendar-app-xi.vercel.app/preview)**
+
+
+## NextJS boilerplate below
 
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
