@@ -52,6 +52,7 @@
     "http-shutdown": "^1.2.2",
     "jquery": "^3.7.0",
     "mocha": "^10.2.0",
+    "moment": "^2.29.4",
     "next": "13.4.2",
     "next-auth": "^4.22.1",
     "postcss": "8.4.23",

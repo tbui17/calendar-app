@@ -4,21 +4,45 @@ import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import 'react-toastify/dist/ReactToastify.css';
 
+import { ColDef, ICellRendererParams } from "ag-grid-community";
 import React, { ChangeEvent, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import { oneMonthAheadYYYYMMDD, oneMonthBehindYYYYMMDD } from "@/utils/date-functions";
 import { signOut, useSession } from "next-auth/react";
 
 import { AgGridReact } from "ag-grid-react";
-import { ColDef } from "ag-grid-community";
+import { DateCellEditor } from "./date-editor";
 import { DatePicker } from './date-picker';
 import {ITransformedEvent} from "@/modules/types";
 import { WebCalendarClient } from "@/modules/web-calendar-client";
+import moment from 'moment'
 
 export const CalendarApp = () => {
-	const session = useSession()
+	const session = useSession({required:true});
 	const [startDate, setStartDate] = useState(oneMonthBehindYYYYMMDD());
 	const [endDate, setEndDate] = useState(oneMonthAheadYYYYMMDD());
+
+	const handleSyncClick = async () => {
+		// @ts-ignore
+		const token:string = (session.data?.access_token)
+		try {
+			
+			
+			const events = await new WebCalendarClient(token).getAllEvents(new Date(startDate), new Date(endDate))
+			if (!events){
+				console.error("No events found")
+				toast("No events found")
+				return
+			}
+			toast("Events retrieved")
+			setRowData(events)
+		} catch (error) {
+			console.error(error)
+			signOut()
+		}
+		
+		
+	};
 
 	const handleStartDate = (e:ChangeEvent<HTMLInputElement>) => {
 		setStartDate(e.target.value);
@@ -27,6 +51,10 @@ export const CalendarApp = () => {
 	  const handleEndDate = (e:ChangeEvent<HTMLInputElement>) => {
 		setEndDate(e.target.value);
 	  };
+
+	  const convertDate = (data:ICellRendererParams<Date,Date>) => {
+		return moment(data.value).format("MM-DD-YYYY hh:mm A")
+	  }
 
 	
 	const defaultData: ITransformedEvent[] = [
@@ -47,10 +75,10 @@ export const CalendarApp = () => {
 	];
 	const defaultColumnDefs: ColDef[] = [
 		{ field: "id", sortable: true, filter: true },
-		{ field: "description", sortable: true, filter: true },
-		{ field: "summary", sortable: true, filter: true },
-		{ field: "start", sortable: true, filter: "agDateColumnFilter" },
-		{ field: "end", sortable: true, filter: "agDateColumnFilter" },
+		{ field: "description", sortable: true, filter: true, editable: true },
+		{ field: "summary", sortable: true, filter: true, editable: true },
+		{ field: "start", sortable: true, filter: "agDateColumnFilter", cellRenderer: convertDate, editable: true,cellEditor:DateCellEditor},
+		{ field: "end", sortable: true, filter: "agDateColumnFilter", cellRenderer: convertDate, editable:true, cellEditor:DateCellEditor },
 	];
 
 
@@ -73,27 +101,7 @@ export const CalendarApp = () => {
 	// 	}
 	// };
 
-	const handleSyncClick = async () => {
-		// @ts-ignore
-		const token:string = (session.data.access_token)
-		try {
-			
-			
-			const events = await new WebCalendarClient(token).getAllEvents(new Date(startDate), new Date(endDate))
-			if (!events){
-				console.error("No events found")
-				toast("No events found")
-				return
-			}
-			toast("Events retrieved")
-			setRowData(events)
-		} catch (error) {
-			console.error(error)
-			signOut()
-		}
-		
-		
-	};
+
 	
 
 	return (
@@ -101,17 +109,11 @@ export const CalendarApp = () => {
 			<div>
 				<div>
 				
-
-				
-
 				</div>
 				
       
 				<DatePicker id="startDate" value={startDate} onChange={handleStartDate} name="from"/>
 				
-				
-	  
-    
 				<div>
 				<DatePicker id="endDate" value={endDate} onChange={handleEndDate} name="to" />
 				
