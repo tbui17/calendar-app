@@ -11,7 +11,7 @@ import { oneMonthAheadYYYYMMDD, oneMonthBehindYYYYMMDD } from "@/utils/date-func
 import { signOut, useSession } from "next-auth/react";
 
 import { AgGridReact } from "ag-grid-react";
-import { DateCellEditor } from "./date-editor";
+import DateCellEditor from "./date-editor";
 import { DatePicker } from './date-picker';
 import {ITransformedEvent} from "@/modules/types";
 import { WebCalendarClient } from "@/modules/web-calendar-client";

@@ -1,9 +1,13 @@
-import { forwardRef, useImperativeHandle, useState } from "react";
+import { Ref, forwardRef, useImperativeHandle, useState } from "react";
 
 import { ICellEditorParams } from "ag-grid-community";
 import moment from "moment"
 
-export const DateCellEditor = forwardRef((props: ICellEditorParams, ref) => {
+interface DateCellEditorRef {
+    getValue(): Date;
+  }
+
+function DateCellEditor(props: ICellEditorParams, ref:Ref<DateCellEditorRef>){
   const [date, setDate] = useState(new Date(props.value));
   
 
@@ -40,4 +44,8 @@ export const DateCellEditor = forwardRef((props: ICellEditorParams, ref) => {
     
     </div>
   );
-});
+};
+
+DateCellEditor.displayName = "DateCellEditor";
+
+export default DateCellEditor;
