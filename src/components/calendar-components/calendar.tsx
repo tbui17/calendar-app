@@ -7,7 +7,6 @@ import "react-toastify/dist/ReactToastify.css";
 import {
 	CellValueChangedEvent,
 	ColDef,
-	ICellEditorParams,
 	ICellRendererParams,
 } from "ag-grid-community";
 import React, { ChangeEvent, useEffect, useRef, useState } from "react";
@@ -15,21 +14,20 @@ import { ToastContainer, toast } from "react-toastify";
 import {
 	oneMonthAheadYYYYMMDD,
 	oneMonthBehindYYYYMMDD,
-} from "@/utils/date-functions";
+} from "@/lib/date-functions";
 import { signOut, useSession } from "next-auth/react";
 
 import { AgGridReact } from "ag-grid-react";
 import DateCellEditor from "./date-editor";
 import { DatePicker } from "./date-picker";
-import { ITransformedEvent } from "@/modules/types";
-import { WebCalendarClient } from "@/modules/web-calendar-client";
+import { IRowData } from "@/types/event-types";
+import { WebCalendarClient } from "@/lib/web-calendar-client";
 import { isAxiosError } from "axios";
 import moment from "moment";
 import { useQuery } from "@tanstack/react-query";
 
-const defaultData: ITransformedEvent[] = [
+const defaultData: x[] = [
 	{
-		type: "date",
 		id: "1",
 		description: "description default",
 		summary: "summary default",
@@ -42,7 +40,6 @@ const defaultData: ITransformedEvent[] = [
 		summary: "summary default2",
 		start: new Date("07-04-2023"),
 		end: new Date("07-05-2023"),
-		type: "date",
 	},
 	{
 		id: "3",
@@ -50,7 +47,6 @@ const defaultData: ITransformedEvent[] = [
 		summary: "summary default3",
 		start: new Date("07/05/2023 09:00 AM"),
 		end: new Date("07/05/2023 10:00 AM"),
-		type: "dateTime",
 	},
 ];
 
@@ -58,7 +54,7 @@ export const CalendarApp = () => {
 	const session = useSession({ required: true });
 	const [startDate, setStartDate] = useState(oneMonthBehindYYYYMMDD());
 	const [endDate, setEndDate] = useState(oneMonthAheadYYYYMMDD());
-	const gridRef = useRef<AgGridReact<ITransformedEvent>>(null);
+	const gridRef = useRef<AgGridReact<>>(null);
 	const [changedRows, setChangedRows] = useState(new Set<number>());
 	const [hasDataFetched, setHasDataFetched] = useState(false);
 	const { data, error, refetch, isFetched, isFetching } = useQuery(
@@ -68,12 +64,12 @@ export const CalendarApp = () => {
 			const token: string = session.data?.access_token;
 
 			try {
-				console.log("fetching...");
+				
 				return new WebCalendarClient(token).getAllEvents(
 					new Date(startDate),
 					new Date(endDate)
-				);
-				
+				)
+
 				
 			} catch (error) {
 				if (isAxiosError(error) && error.response?.status === 401) {
@@ -92,6 +88,7 @@ export const CalendarApp = () => {
 			initialData: defaultData,
 			retry: false,
 			
+			
 		}
 	);
 	
@@ -103,6 +100,8 @@ export const CalendarApp = () => {
 		
 		
 	},[data])
+
+	
 	
 
 
@@ -112,7 +111,7 @@ export const CalendarApp = () => {
 		setHasDataFetched(true);
 	};
 
-	const sendData = async (data: ITransformedEvent[]) => {
+	const sendData = async (data: x[]) => {
 		// @ts-ignore
 		const token: string = session.data?.access_token;
 		const res = await new WebCalendarClient(token).updateMultipleEvents(
@@ -142,7 +141,7 @@ export const CalendarApp = () => {
 	};
 
 	const handleSendClick = async () => {
-		const eventData: ITransformedEvent[] = [];
+		const eventData: x[] = [];
 		const model = gridRef.current?.api.getModel();
 		changedRows.forEach((rowIndex) => {
 			const rowNode = model?.getRowNode(rowIndex.toString());
@@ -175,7 +174,7 @@ export const CalendarApp = () => {
 		setChangedRows(new Set<number>());
 	};
 	const handleCellValueChanged = (
-		event: CellValueChangedEvent<ITransformedEvent>
+		event: CellValueChangedEvent<>
 	) => {
 		const rowNode = event.node;
 		const rowIndex = rowNode.rowIndex;
@@ -184,6 +183,8 @@ export const CalendarApp = () => {
 		}
 		setChangedRows((prevChangedRows) => prevChangedRows.add(rowIndex));
 	};
+
+	
 
 	const defaultColumnDefs: ColDef[] = [
 		{ field: "id", sortable: true, filter: true, resizable:true },
@@ -202,11 +203,11 @@ export const CalendarApp = () => {
 		{
 			field: "end",
 			sortable: true,
-			filter: "agDateColumnFilter",
+			filter: "agDateTimeColumnFilter",
 			cellRenderer: (params: ICellRendererParams) =>
 				convertDate(params, params.data.type),
 			editable: true,
-			cellEditor: DateCellEditor,
+			cellEditor: "dateTimePicker",//DateCellEditor,
 			resizable:true
 		},
 	];

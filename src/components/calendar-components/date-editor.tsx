@@ -1,7 +1,6 @@
 import { Ref, forwardRef, useImperativeHandle, useState } from "react";
 
 import { ICellEditorParams } from "ag-grid-community";
-import { ITransformedEvent } from "@/modules/types";
 import moment from "moment";
 
 interface DateCellEditorRef {
@@ -21,7 +20,7 @@ function createDateSettings(dataType: string, date: Date) {
 }
 
 function DateCellEditor(
-	props: ICellEditorParams<ITransformedEvent, string>,
+	props: ICellEditorParams<IGoogleEvent, string>,
 	ref: Ref<DateCellEditorRef>
 ) {
 	const [date, setDate] = useState(new Date(props.value));

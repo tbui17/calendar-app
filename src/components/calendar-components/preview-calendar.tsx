@@ -15,124 +15,22 @@ import { ToastContainer, toast } from "react-toastify";
 import {
 	oneMonthAheadYYYYMMDD,
 	oneMonthBehindYYYYMMDD,
-} from "@/utils/date-functions";
+} from "@/lib/date-functions";
 
 import { AgGridReact } from "ag-grid-react";
 import DateCellEditor from "./date-editor";
 import { DatePicker } from "./date-picker";
-import { ITransformedEvent } from "@/modules/types";
-import { WebCalendarClient } from "@/modules/web-calendar-client";
+import { WebCalendarClient } from "@/lib/web-calendar-client";
 import { isAxiosError } from "axios";
 import moment from "moment";
 import { signOut } from "next-auth/react";
 import { useQuery } from "@tanstack/react-query";
 
-const defaultData2: any = [ // ITransformedEvent[]
-	{
-		id: "155",
-		description: "Meeting",
-		summary: "Meeting with the CEO.",
-		start: new Date("07-17-2023").toISOString(),
-		end: new Date("07-18-2023").toISOString(),
-		type: "dateTime",
-	},
-	{
-		id: "244",
-		description: "Shopping",
-		summary: "Go shopping at the mall.",
-		start: new Date("07-19-2023"),
-		end: new Date("07-20-2023"),
-		type: "date",
-	},
-];
-
-const defaultData: any = [ // ITransformedEvent[]
-	{
-		id: "1",
-		description: "Sunny day at the beach",
-		summary: "A relaxing day at the beach under the sun.",
-		start: new Date("07-01-2023").toISOString(),
-		end: new Date("07-02-2023").toISOString(),
-		type: "dateTime",
-	},
-	{
-		id: "2",
-		description: "Weekend hiking trip",
-		summary: "An adventurous weekend in the mountains.",
-		start: new Date("07-03-2023").toISOString(),
-		end: new Date("07-04-2023").toISOString(),
-		type: "dateTime",
-	},
-	{
-		id: "3",
-		description: "City exploration",
-		summary: "Discovering the hidden gems of the city.",
-		start: new Date("07-05-2023"),
-		end: new Date("07-06-2023"),
-		type: "date",
-	},
-	{
-		id: "4",
-		description: "Cooking class",
-		summary: "Learning new recipes and cooking techniques.",
-		start: new Date("07-07-2023"),
-		end: new Date("07-08-2023"),
-		type: "date",
-	},
-	{
-		id: "5",
-		description: "Art exhibition visit",
-		summary: "Visiting a local art exhibition.",
-		start: new Date("07-09-2023"),
-		end: new Date("07-10-2023"),
-		type: "date",
-	},
-	{
-		id: "6",
-		description: "Family picnic",
-		summary: "A fun picnic at the park with family.",
-		start: new Date("07-11-2023"),
-		end: new Date("07-12-2023"),
-		type: "date",
-	},
-	{
-		id: "7",
-		description: "Book club meeting",
-		summary: "Discussing this month's book with the club.",
-		start: new Date("07-13-2023"),
-		end: new Date("07-14-2023"),
-		type: "date",
-	},
-	{
-		id: "8",
-		description: "Yoga retreat",
-		summary: "A weekend of relaxation and yoga.",
-		start: new Date("07-15-2023"),
-		end: new Date("07-16-2023"),
-		type: "date",
-	},
-	{
-		id: "9",
-		description: "Music concert",
-		summary: "Attending a live music concert in the city.",
-		start: new Date("07-17-2023"),
-		end: new Date("07-18-2023"),
-		type: "date",
-	},
-	{
-		id: "10",
-		description: "Home renovation",
-		summary: "Weekend dedicated to home improvement.",
-		start: new Date("07-19-2023"),
-		end: new Date("07-20-2023"),
-		type: "date",
-	},
-];
 export const PreviewCalendarApp = () => {
 	// const session = useSession({ required: true });
 	const [startDate, setStartDate] = useState(oneMonthBehindYYYYMMDD());
 	const [endDate, setEndDate] = useState(oneMonthAheadYYYYMMDD());
-	const gridRef = useRef<AgGridReact<ITransformedEvent>>(null);
+	const gridRef = useRef<AgGridReact<IGoogleEvent>>(null);
 	const [changedRows, setChangedRows] = useState(new Set<number>());
 	const [hasDataFetched, setHasDataFetched] = useState(false);
 	const { data, error, refetch, isFetched, isFetching } = useQuery(
@@ -188,7 +86,7 @@ export const PreviewCalendarApp = () => {
 		setHasDataFetched(true);
 	};
 
-	const sendData = async (data: ITransformedEvent[]) => {
+	const sendData = async (data: IGoogleEvent[]) => {
 		// @ts-ignore
 		const token: string = '12345'//session.data?.access_token;
 		const res = await new WebCalendarClient(token).updateMultipleEvents(
@@ -252,7 +150,7 @@ export const PreviewCalendarApp = () => {
 		// setChangedRows(new Set<number>());
 	};
 	const handleCellValueChanged = (
-		event: CellValueChangedEvent<ITransformedEvent>
+		event: CellValueChangedEvent<IGoogleEvent>
 	) => {
 		const rowNode = event.node;
 		const rowIndex = rowNode.rowIndex;
