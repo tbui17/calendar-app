@@ -38,15 +38,15 @@ export default function Home() {
 	} else {
 		return (
 			<div>
-				<div>
-					Please do not use your real google account. This is a WIP.
-					Or go to{" "}
-					<a
+				<div className="pb-11">
+					This application uses your Google Calendar data. However, Google has not yet completed audit of website security. Use your own Google account at your own risk, or use a dummy account.
+					There is also a <a
 						href="/preview"
 						className="font-medium text-blue-600 hover:underline dark:text-blue-500"
 					>
 						preview link
-					</a>
+					</a> which requires no login, but does not have the full features.
+					
 				</div>
 				<p>Not signed in.</p>
 				<button
