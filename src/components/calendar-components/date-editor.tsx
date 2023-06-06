@@ -1,51 +1,75 @@
 import { Ref, forwardRef, useImperativeHandle, useState } from "react";
 
 import { ICellEditorParams } from "ag-grid-community";
-import moment from "moment"
+import { ITransformedEvent } from "@/modules/types";
+import moment from "moment";
 
 interface DateCellEditorRef {
-    getValue(): Date;
-  }
+	getValue(): Date;
+}
 
-function DateCellEditor(props: ICellEditorParams, ref:Ref<DateCellEditorRef>){
-  const [date, setDate] = useState(new Date(props.value));
-  
+function createDateSettings(dataType: string, date: Date) {
+	return dataType === "date"
+		? {
+				type: "date",
+				value: moment(date).format("YYYY-MM-DD"),
+		  }
+		: {
+				type: "datetime-local",
+				value: moment(date).format("YYYY-MM-DDTHH:mm"),
+		  };
+}
 
-  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setDate(new Date(e.target.value));
-    
-  };
+function DateCellEditor(
+	props: ICellEditorParams<ITransformedEvent, string>,
+	ref: Ref<DateCellEditorRef>
+) {
+	const [date, setDate] = useState(new Date(props.value));
+	const settings = createDateSettings(props.data.type, date);
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      props.stopEditing();
-    } else if (e.key === "Escape") {
-      props.stopEditing(true);
-    }
-  };
+	const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => { 
+		settings.type === "date"
+			? setDate(
+					
+						() => {
+              const inputDate = new Date(new Date(e.target.value).toISOString())
+              inputDate.setDate(inputDate.getDate() + 1)
+              return inputDate
+            }
+					
+			  )
+			: setDate(new Date(e.target.value));
+	};
 
-  useImperativeHandle(ref, () => {
-    return {
-        getValue() {
-            return date 
-        }
-    }
-  })
+	const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+		if (e.key === "Enter") {
+			props.stopEditing();
+		} else if (e.key === "Escape") {
+			props.stopEditing(true);
+		}
+	};
 
-  return (
-    <div>
-    <input
-      type="datetime-local"
-      value={moment(date).format("YYYY-MM-DDTHH:mm")}
-      onChange={handleDateChange}
-      onKeyDown={handleKeyDown}
-      onBlur={() => props.stopEditing()}
-    />
-    
-    </div>
-  );
-};
+	useImperativeHandle(ref, () => {
+		return {
+			getValue() {
+				return date
+			},
+		};
+	});
+
+	return (
+		<div>
+			<input
+				type={settings.type}
+				value={settings.value}
+				onChange={handleDateChange}
+				onKeyDown={handleKeyDown}
+				onBlur={() => props.stopEditing()}
+			/>
+		</div>
+	);
+}
 
 DateCellEditor.displayName = "DateCellEditor";
 
-export default DateCellEditor;
+export default forwardRef(DateCellEditor);
