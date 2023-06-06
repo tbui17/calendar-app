@@ -183,8 +183,9 @@ export const PreviewCalendarApp = () => {
 
 
 	const handleFetchClick = async () => {
-		refetch();
-		setHasDataFetched(true);
+		// refetch();
+		toast("Cannot fetch data in preview mode.")
+		// setHasDataFetched(true);
 	};
 
 	const sendData = async (data: ITransformedEvent[]) => {
