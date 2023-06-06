@@ -1,22 +1,23 @@
 
-type DatePickerProps = {
+type DatePickerProps = Omit<React.InputHTMLAttributes<HTMLInputElement>, "type"> & {
     id:string
     value:string
     onChange:React.ChangeEventHandler<HTMLInputElement>
-    name:string
+    labelName:string
     
 }
 
-export function DatePicker({id,value,onChange,name}:DatePickerProps){
+export function DatePicker({id,value,onChange,labelName,className="bg-gray-600",...otherProps}:DatePickerProps){
     return (
     <>
-    <label htmlFor={id} className="pr-3">{name}</label>
+    <label htmlFor={id} className="pr-3">{labelName}</label>
       <input
         type="date"
         id={id}
         value={value}
         onChange={onChange}
-		className = "bg-gray-600"
+		    className = {className}
+        {...otherProps}
       />
       </>
     )
