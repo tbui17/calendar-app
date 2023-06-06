@@ -186,9 +186,9 @@ export const CalendarApp = () => {
 	};
 
 	const defaultColumnDefs: ColDef[] = [
-		{ field: "id", sortable: true, filter: true },
-		{ field: "description", sortable: true, filter: true, editable: true },
-		{ field: "summary", sortable: true, filter: true, editable: true },
+		{ field: "id", sortable: true, filter: true, resizable:true },
+		{ field: "description", sortable: true, filter: true, editable: true, resizable:true },
+		{ field: "summary", sortable: true, filter: true, editable: true, resizable:true },
 		{
 			field: "start",
 			sortable: true,
@@ -197,6 +197,7 @@ export const CalendarApp = () => {
 				convertDate(params, params.data.type),
 			editable: true,
 			cellEditor: DateCellEditor,
+			resizable:true
 		},
 		{
 			field: "end",
@@ -206,6 +207,7 @@ export const CalendarApp = () => {
 				convertDate(params, params.data.type),
 			editable: true,
 			cellEditor: DateCellEditor,
+			resizable:true
 		},
 	];
 
