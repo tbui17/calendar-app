@@ -20,7 +20,7 @@ function createDateSettings(dataType: string, date: Date) {
 }
 
 function DateCellEditor(
-	props: ICellEditorParams<IGoogleEvent, string>,
+	props: ICellEditorParams<x, string>,
 	ref: Ref<DateCellEditorRef>
 ) {
 	const [date, setDate] = useState(new Date(props.value));

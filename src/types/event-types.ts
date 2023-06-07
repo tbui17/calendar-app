@@ -18,16 +18,12 @@ import {O} from "ts-toolbelt"
 //     accessToken:string
 //     }
 
-export type IDate = {date:string, dateTime?:string}
-export type IDateTime = {date?:string, dateTime:string}
+export type IDate = {date:string}
+export type IDateTime = {dateTime:string}
 
-export type IEventCoreData = {
-    start:IDate|IDateTime
-    end:IDate|IDateTime
-    summary:string
-    description:string
-    
-}
+export type IEventCoreData =
+    | { start: IDate, end: IDate, summary: string, description: string }
+    | { start: IDateTime, end: IDateTime, summary: string, description: string }
 
 export type IDateEventCoreData = O.Overwrite<IEventCoreData, {start: IDate, end: IDate}>
 
@@ -65,6 +61,6 @@ export function isValidDate(date: string):boolean{
     return date.match(/^\d{4}-\d{2}-\d{2}$/) !== null
 }
 
-export type IRowData = ICalendarEvent & {
-    changeType: "created"|"updated"|"delete"|"none"
+export type ICalendarRowData = ICalendarEvent & {
+    changeType: "created"|"updated"|"delete"|null
 }

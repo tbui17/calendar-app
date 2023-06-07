@@ -4,6 +4,7 @@ import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import "react-toastify/dist/ReactToastify.css";
 
+import { AxiosError, isAxiosError } from "axios";
 import {
 	CellValueChangedEvent,
 	ColDef,
@@ -21,7 +22,6 @@ import { AgGridReact } from "ag-grid-react";
 import DateCellEditor from "./date-editor";
 import { DatePicker } from "./date-picker";
 import { WebCalendarClient } from "@/lib/web-calendar-client";
-import { isAxiosError } from "axios";
 import moment from "moment";
 import { signOut } from "next-auth/react";
 import { useQuery } from "@tanstack/react-query";
@@ -190,22 +190,7 @@ export const PreviewCalendarApp = () => {
 	const [columnDefs, setColumnDefs] = useState<ColDef[]>(defaultColumnDefs);
 
 	if (error) {
-		if (isAxiosError(error)) {
-			if (error.response?.status === 401) {
-				console.error("Expired token");
-				signOut();
-				
-			}
-			else {
-			return (
-				<>
-					<div>An error has occurred. </div>
-					<div>{error.message}</div>
-				</>
-			)}
-		} else {
-			return <div>Something went wrong</div>;
-		}
+		throw error as Error | AxiosError
 	}
 
 	return (

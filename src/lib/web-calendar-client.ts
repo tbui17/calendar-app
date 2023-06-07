@@ -26,7 +26,7 @@ export class WebCalendarClient {
 		startDate = oneMonthBehind(),
 		endDate = oneMonthAhead(),
 	}) {
-		const res = await this.instance.get<calendar_v3.Schema$Event>(
+		const res = await this.instance.get<calendar_v3.Schema$Event[]>(
 			"https://www.googleapis.com/calendar/v3/calendars/primary/events",
 			{
 				params: {
@@ -59,7 +59,7 @@ export class WebCalendarClient {
 
 	async updateMultipleEvents(events: ICalendarEvent[]) {
 		const promises = events.map((event) => this.updateEvent(event));
-		const res = await Promise.all(promises);
-		return res;
+		return Promise.all(promises);
+		
 	}
 }
