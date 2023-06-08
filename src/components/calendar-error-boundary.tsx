@@ -1,16 +1,19 @@
 import { Component, ErrorInfo, ReactNode } from "react";
 
+import { AxiosError } from "axios";
+import ErrorAccessTokenExpired from "./error-access-token-expired";
+
 interface Props {
   children: ReactNode;
 }
 
 interface State {
   hasError: boolean;
-  error: Error | null;
+  error: Error | AxiosError | null;
   errorInfo: ErrorInfo | null;
 }
 
-class ErrorBoundary extends Component<Props, State> {
+class CalendarErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
     this.state = {
@@ -21,7 +24,7 @@ class ErrorBoundary extends Component<Props, State> {
     };
   }
 
-  static getDerivedStateFromError(error: Error) {
+  static getDerivedStateFromError(error: Error|AxiosError) {
     return { hasError: true, error };
   }
 
@@ -31,6 +34,9 @@ class ErrorBoundary extends Component<Props, State> {
 
   render() {
     if (this.state.hasError) {
+        if (this.state.error instanceof AxiosError && this.state.error.status === 401) {
+            return <ErrorAccessTokenExpired />
+        }
       return (
         <div>
           <h1>Something went wrong.</h1>
@@ -44,4 +50,4 @@ class ErrorBoundary extends Component<Props, State> {
   }
 }
 
-export default ErrorBoundary;
+export default CalendarErrorBoundary;

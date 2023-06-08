@@ -1,4 +1,4 @@
-import { ICalendarRowData } from "@/types/event-types";
+import { ICalendarRowData } from "@/types/row-data-types";
 import { calendar_v3 } from "googleapis";
 
 type IDate = { date: string };

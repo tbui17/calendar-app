@@ -6,6 +6,7 @@ import "ag-grid-community/styles/ag-theme-alpine.css";
 import { signIn, signOut, useSession } from "next-auth/react";
 
 import { CalendarApp } from "../components/calendar-components/calendar";
+import CalendarErrorBoundary from "@/components/calendar-error-boundary";
 
 // Import the functions you need from the SDKs you need
 
@@ -17,6 +18,7 @@ export default function Home() {
 	if (data) {
 		return (
 			<>
+				<CalendarErrorBoundary>
 				<div
 					id="navbar"
 					className=" bg-gray-900"
@@ -33,6 +35,7 @@ export default function Home() {
 				</div>
 
 				<CalendarApp />
+				</CalendarErrorBoundary>
 			</>
 		);
 	} else {

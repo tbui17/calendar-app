@@ -50,7 +50,7 @@ export class WebCalendarClient {
 	 */
 	async updateEvent(event: ICalendarEvent) {
 		const { id, ...data } = event;
-		const res = await this.instance.patch(
+		const res = await this.instance.patch<calendar_v3.Schema$Event>(
 			`https://www.googleapis.com/calendar/v3/calendars/primary/events/${id}`,
 			data
 		);

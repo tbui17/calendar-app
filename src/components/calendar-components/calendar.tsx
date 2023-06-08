@@ -22,7 +22,7 @@ import { isAxiosError } from "axios";
 
 import { useToastEffect } from "@/hooks/useToastEffect";
 import { useDateRange } from "@/hooks/useDateRange";
-import { ICalendarRowData } from "@/types/event-types";
+import { ICalendarRowData } from "@/types/row-data-types";
 import { useGetCalendar } from "@/hooks/useGetCalendar";
 import { Session } from "next-auth";
 
@@ -69,7 +69,10 @@ export const CalendarApp = () => {
 	// 	}
 	// };
 	
+
+
 	const handleSendClick = async () => {
+		gridRef.current?.api.forEachNode((node) => {return node})
 		const patchEventData: ICalendarRowData[]|undefined = data?.filter((row) => {
 			return row.changeType === "updated"
 		})
@@ -88,8 +91,9 @@ export const CalendarApp = () => {
 			
 		});
 		let success: boolean = true;
-
+		
 		if (res) {
+			
 			res.forEach((result) => {
 				if (!result) {
 					success = false;
@@ -104,7 +108,7 @@ export const CalendarApp = () => {
 			toast("No response");
 			console.error("No response");
 		}
-		setChangedRows(new Set<number>());
+		
 	};
 
 	// table configs
