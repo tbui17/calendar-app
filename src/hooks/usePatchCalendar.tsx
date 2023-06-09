@@ -1,51 +1,59 @@
-import { DefinedUseQueryResult, useQuery } from "@tanstack/react-query";
-import { signOut, useSession } from "next-auth/react";
+import { UseMutationResult, useMutation } from "@tanstack/react-query";
 
+import { ICalendarRowData } from "@/types/row-data-types";
 import { Session } from "next-auth";
 import { WebCalendarClient } from "@/lib/web-calendar-client";
-import { convertCalendarData } from "../lib/convert-calendar-data";
-import { defaultData } from "@/data/sample-calendar-data";
-import { isAxiosError } from "axios";
-
-type usePatchCalendarProps = {
-	startDate: string;
-	endDate: string;
-};
+import { useSession } from "next-auth/react";
 
 /**
  * A custom React hook that fetches calendar events from the server using the provided session token.
- * @param {useGetCalendarProps} props - The props object containing the session, start date, end date, and default data.
+ * @param {useGetCalendarData} data - The data object containing the session, start date, end date, and default data.
  * @returns {DefinedUseQueryResult} - The result of the query.
  */
-export const usePatchCalendar = ({ endDate, startDate }: usePatchCalendarProps):DefinedUseQueryResult => {
-	const data = useSession().data as Session & { access_token: string };
-	return useQuery(
-		["events"],
+export const usePatchCalendar = (data: ICalendarRowData[]):UseMutationResult => {
+	const sessionData = useSession().data as Session & { access_token: string };
+	return useMutation(
+		["patch-calendar"],
 		async () => {
-			const token: string = data.access_token;
-
-			try {
-				const res = await new WebCalendarClient(token).getAllEvents({
-					startDate: new Date(startDate),
-					endDate: new Date(endDate),
-				});
-				return convertCalendarData(res);
-			} catch (error) {
-				if (isAxiosError(error) && error.response?.status === 401) {
-					console.error("token expired");
-					console.error(error);
-					signOut();
-					return;
-				}
-				console.error("unknown error");
-				throw error;
-			}
+             
+                const patchEventData: ICalendarRowData[]|undefined = data.filter((row) => {
+                    return row.changeType === "updated"
+                })
+                
+                if (patchEventData === undefined || patchEventData.length === 0) {
+                    toast("No events to send");
+                    return;
+                }
+        
+                const res = async () => {
+                    const token = sessionData?.access_token
+                    
+                    return await new WebCalendarClient(token).updateMultipleEvents(
+                        patchEventData
+                    );
+                    
+                };
+                let success: boolean = true;
+        
+                if (res) {
+                    res.forEach((result) => {
+                        if (!result) {
+                            success = false;
+                        }
+                    });
+                    if (success) {
+                        toast(`Successfully updated ${res.length} events`);
+                    } else {
+                        toast("There was an error updating the events");
+                    }
+                } else {
+                    toast("No response");
+                    console.error("No response");
+                }
+                setChangedRows(new Set<number>());
+            ;
 		},
-		{
-			refetchOnWindowFocus: false,
-			enabled: false,
-			initialData: convertCalendarData(defaultData),
-			retry: false,
-		}
+		
 	);
 };
+

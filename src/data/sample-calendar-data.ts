@@ -1,6 +1,6 @@
-import { ICalendarEvent } from "@/types/event-types";
+import { ICalendarEvent, IDateEventData, IEventData } from "@/types/event-types";
 
-const defaultData2: ICalendarEvent[] = [
+const defaultData2: ICalendarEvent<IDateEventData|IEventData>[] = [
     {
       id: "1",
       start: {dateTime: new Date("07-17-2023").toISOString()},
@@ -18,7 +18,7 @@ const defaultData2: ICalendarEvent[] = [
   ];
   
 
-  export const defaultData: ICalendarEvent[] = [
+  export const defaultData: ICalendarEvent<IDateEventData|IEventData>[] = [
     {
       id: "1",
       description: "Sunny day at the beach",
@@ -90,3 +90,5 @@ const defaultData2: ICalendarEvent[] = [
       end: { date: new Date("2023-07-20").toISOString() },
     },
   ];
+
+
