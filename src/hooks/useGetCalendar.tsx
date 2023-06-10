@@ -22,7 +22,7 @@ export const useGetCalendar = ({ endDate, startDate }: useGetCalendarProps) => {
 		["events"],
 		 () => {
 			const token: string = data.access_token;
-				return new WebCalendarClient(token).getAllEvents({
+				return new WebCalendarClient(token).getEvents({
 					startDate: new Date(startDate),
 					endDate: new Date(endDate),
 				});

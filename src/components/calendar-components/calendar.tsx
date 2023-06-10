@@ -9,22 +9,21 @@ import {
 	ColDef,
 	ICellRendererParams,
 } from "ag-grid-community";
-import React, {useRef, useState } from "react";
+import { ICalendarRowData, calendarRowDataSchema } from "@/types/row-data-types";
+import React, {useRef, useState} from "react";
 import { ToastContainer, toast } from "react-toastify";
 import { signOut, useSession } from "next-auth/react";
 
 import { AgGridReact } from "ag-grid-react";
 import DateCellEditor from "./date-editor";
 import { DatePicker } from "./date-picker";
-
+import { Session } from "next-auth";
 import { WebCalendarClient } from "@/lib/web-calendar-client";
 import { isAxiosError } from "axios";
-
-import { useToastEffect } from "@/hooks/useToastEffect";
 import { useDateRange } from "@/hooks/useDateRange";
-import { ICalendarRowData } from "@/types/row-data-types";
 import { useGetCalendar } from "@/hooks/useGetCalendar";
-import { Session } from "next-auth";
+import { useToastEffect } from "@/hooks/useToastEffect";
+import { z } from "zod";
 
 export const CalendarApp = () => {
 	// hooks
@@ -33,8 +32,6 @@ export const CalendarApp = () => {
 		setEndDate,
 		setStartDate,
 		startDate,
-		validateEndDate,
-		validateStartDate,
 	} = useDateRange();
 	const { data, isFetching, refetch, error } = useGetCalendar({
 		startDate,
@@ -245,10 +242,10 @@ export const CalendarApp = () => {
 				style={{ height: 1000 }}
 			>
 				<AgGridReact
-					rowData={data}
+					rowData={[...(data?.dateEvents ?? []), ...(data?.dateTimeEvents ?? [])]}
 					columnDefs={columnDefs}
 					ref={gridRef}
-					onCellValueChanged={(e: CellValueChangedEvent<>) => {
+					onCellValueChanged={(e: CellValueChangedEvent<z.infer<typeof calendarRowDataSchema>>) => {
 						const rowNode = e.node;
 						const rowIndex = rowNode.rowIndex;
 						if (rowIndex === null || rowIndex === undefined) {

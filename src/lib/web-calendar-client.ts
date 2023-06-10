@@ -2,16 +2,19 @@ import {
 	ICalendarEvent,
 	IDateEventData,
 	IDateTimeEventData,
+	IValidPatchProps,
 	dateEventSchema,
 	dateTimeEventSchema,
 } from "../types/event-types";
 import axios, { AxiosInstance } from "axios";
 import { oneMonthAhead, oneMonthBehind } from "@/lib/date-functions";
 
+import { calendarRowDataSchema } from "@/types/row-data-types";
 import { calendar_v3 } from "googleapis";
 import { z } from "zod";
 
-export class WebCalendarClient {
+// https://developers.google.com/calendar/api/v3/reference/events/list
+export class WebCalendarClient { // TODO: add token refresh after fixing backend
 	private instance: AxiosInstance;
 	constructor(private access_token: string) {
 		this.instance = axios.create({
@@ -28,9 +31,11 @@ export class WebCalendarClient {
 	 * @throws {AxiosError}
 	 * @returns
 	 */
-	async getAllEvents({
+	async getEvents({
 		startDate = oneMonthBehind(),
 		endDate = oneMonthAhead(),
+		maxResults = 500,
+		calendarId = "primary"
 	}): Promise<{
 		dateEvents: {
 			id: string;
@@ -53,11 +58,11 @@ export class WebCalendarClient {
 			"https://www.googleapis.com/calendar/v3/calendars/primary/events",
 			{
 				params: {
-					calendarId: "primary",
+					calendarId,
 					timeMin: startDate.toISOString(),
 					timeMax: endDate.toISOString(),
-					maxResults: 500,
-					singleEvents: true,
+					maxResults,
+					singleEvents: false, // Whether to expand recurring events into instances and only return single one-off events and instances of recurring events, but not the underlying recurring events themselves. Optional. The default is False.
 					orderBy: "startTime",
 				},
 			}
@@ -71,11 +76,13 @@ export class WebCalendarClient {
 	 * @throws {AxiosError}
 	 * @returns
 	 */
-	async updateEvent(event: ICalendarEvent<IDateEventData | IDateTimeEventData>) {
+	async updateEvent<T extends ICalendarEvent<IDateEventData | IDateTimeEventData>>(event: T) { 
 		const { id, ...data } = event;
-		const res = await this.instance.patch<calendar_v3.Schema$Event>(
+		
+		const res = await this.instance.patch<calendar_v3.Schema$Event, IValidPatchProps>(
 			`https://www.googleapis.com/calendar/v3/calendars/primary/events/${id}`,
 			data
+			
 		);
 		return res;
 	}
@@ -86,13 +93,13 @@ export class WebCalendarClient {
 	 * @throws {AxiosError}
 	 * @returns 
 	 */
-	async updateMultipleEvents(events: ICalendarEvent<IDateEventData | IDateTimeEventData>[]) {
+	async updateMultipleEvents<T extends ICalendarEvent<IDateEventData | IDateTimeEventData> = z.infer<typeof calendarRowDataSchema>>(events: T[]) {
 		const promises = events.map((event) => this.updateEvent(event));
 		return Promise.all(promises);
 	}
 
 	
-	private static parseEvents(data: calendar_v3.Schema$Event[]) {
+	public static parseEvents(data: calendar_v3.Schema$Event[], unpack:boolean = false) {
 		// https://stackoverflow.com/questions/55149221/class-with-static-methods-vs-exported-functions-typescript
 		const eventContainer: {
 			dateEvents: z.infer<typeof dateEventSchema>[];
@@ -102,16 +109,19 @@ export class WebCalendarClient {
 			dateTimeEvents: [],
 		};
 		data.forEach((event) => {
-			event.start?.date
-				? eventContainer.dateEvents.push(dateEventSchema.parse(event))
-				: event.start?.dateTime
+			event.start?.date !== null && event.start?.date !== undefined
+				? eventContainer.dateEvents.push(dateEventSchema.parse({...event, dateType: "date", changeType: "none"}))
+				: event.start?.dateTime !== null && event.start?.dateTime !== undefined
 				? eventContainer.dateTimeEvents.push(
-						dateTimeEventSchema.parse(event)
+						dateTimeEventSchema.parse({...event, dateType: "dateTime", changeType: "none"})
 				  )
 				: console.warn(
 						`Event ${event.summary} has no start date or start date time`
 				  );
 		});
 		return eventContainer;
+		
 	}
 }
+
+
