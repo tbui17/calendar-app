@@ -5,15 +5,11 @@ import { calendar_v3 } from "googleapis";
 import { z } from "zod";
 
 const undefinedOrNullStringCoercer = z
-	.string()
-	.or(z.undefined())
-	.or(z.null())
+	.union([z.undefined(), z.null(), z.string()])
 	.transform((val) => {
 		return val === undefined || val === null ? "" : val;
 	})
 	.pipe(z.string());
-
-
 
 export const baseEventSchema = z.object({
 	id: z.string(),
@@ -30,6 +26,17 @@ export const preDateEventSchema = baseEventSchema.extend({
 export const dateEventSchema = preDateEventSchema.extend({
 	dateType: z.literal("date"),
 });
+
+const dateEventSchemaNew = z.preprocess((val) => {
+	const r = val as calendar_v3.Schema$Event
+	return {
+		...r,
+		dateType: "date",
+	}
+}, preDateEventSchema.extend({
+	dateType: z.literal("date"),
+}))
+type test1 = z.infer<typeof dateEventSchemaNew>
 
 // datetime event schema
 export const preDateTimeEventSchema = baseEventSchema.extend({

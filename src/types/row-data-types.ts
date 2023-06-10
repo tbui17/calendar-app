@@ -13,9 +13,13 @@ export const changeTypeSchema = z.union([
     z.literal("none"),
 ])
 
+
+
 export const dateEventRowDataSchema = dateEventSchema.extend({
 	changeType: changeTypeSchema
 });
+const r = z.discriminatedUnion("changeType", [dateEventRowDataSchema] )
+
 
 export const dateEventRowDataSchemaTransform = dateEventRowDataSchema.transform((data) => {
 	
@@ -29,28 +33,29 @@ export const calendarRowDataSchema = z.union([dateEventRowDataSchema, dateTimeEv
 
 
 
-export type dateEventRowData = z.infer<typeof dateEventRowDataSchema>;
-export type dateTimeEventRowData = z.infer<typeof dateTimeEventRowDataSchema>;
-export type calendarRowData = dateEventRowData | dateTimeEventRowData;
+export type IDateEventRowDataSchema = z.infer<typeof dateEventRowDataSchema>;
+
+export type IDateTimeEventRowDataSchema = z.infer<typeof dateTimeEventRowDataSchema>;
+export type ICalendarRowDataSchema = IDateEventRowDataSchema | IDateTimeEventRowDataSchema;
 
 /**
  * Generates discriminated union types from an object type and a list of strings.
  */
-type GenerateChangeTypes<
-	TObject,
-	TDiscriminatorStrings extends readonly string[]
-> = {
-	[TKey in TDiscriminatorStrings[number]]: TObject & { changeType: TKey };
-}[TDiscriminatorStrings[number]];
+// type GenerateChangeTypes<
+// 	TObject,
+// 	TDiscriminatorStrings extends readonly string[]
+// > = {
+// 	[TKey in TDiscriminatorStrings[number]]: TObject & { changeType: TKey };
+// }[TDiscriminatorStrings[number]];
 
-export type ICalendarRowData = GenerateChangeTypes<
-	ICalendarEvent<IDateEventData | IDateTimeEventData>,
-	["created", "updated", "deleted", "none"]
->;
+// export type ICalendarRowData = GenerateChangeTypes<
+// 	ICalendarEvent<IDateEventData | IDateTimeEventData>,
+// 	["created", "updated", "deleted", "none"]
+// >;
 
-export type IPatchRowData = Extract<ICalendarRowData, { changeType: "updated" }>;
-export type IPostRowData = Extract<ICalendarRowData, { changeType: "created" }>;
-export type IDeleteRowData = Extract<ICalendarRowData, { changeType: "deleted" }>;
+export type IPatchRowData = Extract<ICalendarRowDataSchema, { changeType: "updated" }>;
+export type IPostRowData = Extract<ICalendarRowDataSchema, { changeType: "created" }>;
+export type IDeleteRowData = Extract<ICalendarRowDataSchema, { changeType: "deleted" }>;
 
 export type IPostPatchDeleteRowData = {
 	patchRowData: IPatchRowData[];

@@ -1,8 +1,8 @@
 import { AgGridReact } from "ag-grid-react";
-import { ICalendarRowData } from "@/types/row-data-types";
+import { ICalendarRowDataSchema } from "@/types/row-data-types";
 
-export function getRowData(gridRef: AgGridReact<ICalendarRowData>, conditionCallback: (event: ICalendarRowData) => boolean){
-    const rowData: ICalendarRowData[] = []
+export function getRowData(gridRef: AgGridReact<ICalendarRowDataSchema>, conditionCallback: (event: ICalendarRowDataSchema) => boolean){
+    const rowData: ICalendarRowDataSchema[] = []
     gridRef.api.forEachNode((node) => {
         
         if (node.data && conditionCallback(node.data)) {

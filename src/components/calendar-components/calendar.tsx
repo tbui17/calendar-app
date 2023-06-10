@@ -9,7 +9,7 @@ import {
 	ColDef,
 	ICellRendererParams,
 } from "ag-grid-community";
-import { ICalendarRowData, calendarRowDataSchema } from "@/types/row-data-types";
+import { ICalendarRowDataSchema, calendarRowDataSchema } from "@/types/row-data-types";
 import React, {useRef, useState} from "react";
 import { ToastContainer, toast } from "react-toastify";
 import { signOut, useSession } from "next-auth/react";
@@ -37,7 +37,7 @@ export const CalendarApp = () => {
 		startDate,
 		endDate,
 	});
-	const gridRef = useRef<AgGridReact<ICalendarRowData>>(null);
+	const gridRef = useRef<AgGridReact<ICalendarRowDataSchema>>(null);
 	const session = useSession({ required: true });
 	const [hasDataFetched, setHasDataFetched] = useState(false);
 
@@ -69,6 +69,7 @@ export const CalendarApp = () => {
 
 
 	const handleSendClick = async () => {
+		const result = []
 		gridRef.current?.api.forEachNode((node) => {return node})
 		const patchEventData: ICalendarRowData[]|undefined = data?.filter((row) => {
 			return row.changeType === "updated"
