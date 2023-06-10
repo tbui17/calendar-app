@@ -34,6 +34,7 @@ describe("WebCalendarClient.parseEvents", () => {
 					date: expect.any(String),
 				},
 				dateType: "date",
+        changeType: expect.stringMatching("none")
 			});
 		}
     
@@ -49,6 +50,7 @@ describe("WebCalendarClient.parseEvents", () => {
           dateTime: expect.any(String),
         },
         dateType: "dateTime",
+        changeType: expect.stringMatching("none")
       });
     })
 	});

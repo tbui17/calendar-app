@@ -4,6 +4,7 @@ import {
 	dateTimeEventSchema,
 } from "./event-types";
 
+import { calendar_v3 } from "googleapis";
 import { z } from "zod";
 
 export const changeTypeSchema = z.union([
@@ -16,17 +17,13 @@ export const changeTypeSchema = z.union([
 
 
 export const dateEventRowDataSchema = dateEventSchema.extend({
-	changeType: changeTypeSchema
+	changeType: changeTypeSchema.default("none")
 });
-const r = z.discriminatedUnion("changeType", [dateEventRowDataSchema] )
 
 
-export const dateEventRowDataSchemaTransform = dateEventRowDataSchema.transform((data) => {
-	
-})
 
 export const dateTimeEventRowDataSchema = dateTimeEventSchema.extend({
-	changeType: changeTypeSchema
+	changeType: changeTypeSchema.default("none")
 });
 
 export const calendarRowDataSchema = z.union([dateEventRowDataSchema, dateTimeEventRowDataSchema]);

@@ -7,9 +7,9 @@ import {
 	dateTimeEventSchema,
 } from "../types/event-types";
 import axios, { AxiosInstance } from "axios";
+import { calendarRowDataSchema, dateEventRowDataSchema, dateTimeEventRowDataSchema } from "@/types/row-data-types";
 import { oneMonthAhead, oneMonthBehind } from "@/lib/date-functions";
 
-import { calendarRowDataSchema } from "@/types/row-data-types";
 import { calendar_v3 } from "googleapis";
 import { z } from "zod";
 
@@ -110,10 +110,10 @@ export class WebCalendarClient { // TODO: add token refresh after fixing backend
 		};
 		data.forEach((event) => {
 			event.start?.date !== null && event.start?.date !== undefined
-				? eventContainer.dateEvents.push(dateEventSchema.parse({...event, dateType: "date", changeType: "none"}))
+				? eventContainer.dateEvents.push(dateEventRowDataSchema.parse(event))
 				: event.start?.dateTime !== null && event.start?.dateTime !== undefined
 				? eventContainer.dateTimeEvents.push(
-						dateTimeEventSchema.parse({...event, dateType: "dateTime", changeType: "none"})
+						dateTimeEventRowDataSchema.parse(event)
 				  )
 				: console.warn(
 						`Event ${event.summary} has no start date or start date time`

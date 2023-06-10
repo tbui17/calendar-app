@@ -4,7 +4,7 @@ import { O } from "ts-toolbelt";
 import { calendar_v3 } from "googleapis";
 import { z } from "zod";
 
-const undefinedOrNullStringCoercer = z
+const undefinedOrNullStringCoerceSchema = z
 	.union([z.undefined(), z.null(), z.string()])
 	.transform((val) => {
 		return val === undefined || val === null ? "" : val;
@@ -13,8 +13,8 @@ const undefinedOrNullStringCoercer = z
 
 export const baseEventSchema = z.object({
 	id: z.string(),
-	summary: undefinedOrNullStringCoercer,
-	description: undefinedOrNullStringCoercer,
+	summary: z.string().default(""),
+	description: undefinedOrNullStringCoerceSchema,
 });
 
 // dates event schema
@@ -24,19 +24,8 @@ export const preDateEventSchema = baseEventSchema.extend({
 });
 
 export const dateEventSchema = preDateEventSchema.extend({
-	dateType: z.literal("date"),
+	dateType: z.literal("date").default("date"),
 });
-
-const dateEventSchemaNew = z.preprocess((val) => {
-	const r = val as calendar_v3.Schema$Event
-	return {
-		...r,
-		dateType: "date",
-	}
-}, preDateEventSchema.extend({
-	dateType: z.literal("date"),
-}))
-type test1 = z.infer<typeof dateEventSchemaNew>
 
 // datetime event schema
 export const preDateTimeEventSchema = baseEventSchema.extend({
@@ -45,7 +34,7 @@ export const preDateTimeEventSchema = baseEventSchema.extend({
 });
 
 export const dateTimeEventSchema = preDateTimeEventSchema.extend({
-	dateType: z.literal("dateTime"),
+	dateType: z.literal("dateTime").default("dateTime"),
 });
 
 export const preCalendarEventSchema = z.union([
