@@ -419,7 +419,25 @@ interface _WritableEventProps {
 	visibility: string;
 }
 
+
+// TODO: distribute type over original valid patch props such that any event with date does not have datetime and vice versa
+
+// type DateEventProps = {start: {date: string}, end: {date: string}}
+// type DateTimeEventProps = {start: {dateTime: string, timeZone?:string}, end: {dateTime: string, timeZone?:string}}
+// type ValidDateEvent<T> = T extends DateEventProps ? T : never
+// type ValidDateTimeEvent<T> = T extends DateTimeEventProps ? T : never
+// type ValidDateOrDateTimeEvent<T> = T extends DateEventProps ? T : T extends DateTimeEventProps ? T : never
+
+
 export type IValidPatchProps = Omit<
 	O.Partial<_WritableEventProps, "deep">,
 	"id"
 >;
+
+
+export type IGetEventsArgs = {
+	startDate?: Date;
+	endDate?: Date;
+	maxResults?: number;
+	calendarId?: string;
+  };

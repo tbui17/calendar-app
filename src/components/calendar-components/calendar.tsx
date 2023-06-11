@@ -19,6 +19,7 @@ import DateCellEditor from "./date-editor";
 import { DatePicker } from "./date-picker";
 import { Session } from "next-auth";
 import { WebCalendarClient } from "@/lib/web-calendar-client";
+import { convertDate } from "@/lib/convert-date";
 import { isAxiosError } from "axios";
 import { useDateRange } from "@/hooks/useDateRange";
 import { useGetCalendar } from "@/hooks/useGetCalendar";
@@ -34,8 +35,8 @@ export const CalendarApp = () => {
 		startDate,
 	} = useDateRange();
 	const { data, isFetching, refetch, error } = useGetCalendar({
-		startDate,
-		endDate,
+		startDate: new Date(startDate),
+		endDate: new Date(endDate),
 	});
 	const gridRef = useRef<AgGridReact<ICalendarRowDataSchema>>(null);
 	const session = useSession({ required: true });
@@ -53,59 +54,48 @@ export const CalendarApp = () => {
 		refetch();
 		setHasDataFetched(true);
 	};
-
-	// const convertDate = (
-	// 	data: ICellRendererParams<Date, Date>,
-	// 	type: string
-	// ) => {
-	// 	if (type === "date") return moment(data.value).format("MM-DD-YYYY");
-	// 	if (type === "dateTime") {
-	// 		return moment(data.value).format("MM-DD-YYYY hh:mm A");
-	// 	} else {
-	// 		throw new Error("Invalid type");
-	// 	}
-	// };
 	
 
 
 	const handleSendClick = async () => {
-		const result = []
-		gridRef.current?.api.forEachNode((node) => {return node})
-		const patchEventData: ICalendarRowData[]|undefined = data?.filter((row) => {
-			return row.changeType === "updated"
-		})
+		console.error("Not implemented")
+		// const result = []
+		// gridRef.current?.api.forEachNode((node) => {return node})
+		// const patchEventData: ICalendarRowData[]|undefined = data?.filter((row) => {
+		// 	return row.changeType === "updated"
+		// })
 		
-		if (patchEventData === undefined || patchEventData.length === 0) {
-			toast("No events to send");
-			return;
-		}
+		// if (patchEventData === undefined || patchEventData.length === 0) {
+		// 	toast("No events to send");
+		// 	return;
+		// }
 
-		const res = await (async () => {
-			const token = (session.data as Session & {access_token:string}).access_token
+		// const res = await (async () => {
+		// 	const token = (session.data as Session & {access_token:string}).access_token
 			
-			return new WebCalendarClient(token).updateMultipleEvents(
-				patchEventData
-			);
+		// 	return new WebCalendarClient(token).updateMultipleEvents(
+		// 		patchEventData
+		// 	);
 			
-		});
-		let success: boolean = true;
+		// });
+		// let success: boolean = true;
 		
-		if (res) {
+		// if (res) {
 			
-			res.forEach((result) => {
-				if (!result) {
-					success = false;
-				}
-			});
-			if (success) {
-				toast(`Successfully updated ${res.length} events`);
-			} else {
-				toast("There was an error updating the events");
-			}
-		} else {
-			toast("No response");
-			console.error("No response");
-		}
+		// 	res.forEach((result) => {
+		// 		if (!result) {
+		// 			success = false;
+		// 		}
+		// 	});
+		// 	if (success) {
+		// 		toast(`Successfully updated ${res.length} events`);
+		// 	} else {
+		// 		toast("There was an error updating the events");
+		// 	}
+		// } else {
+		// 	toast("No response");
+		// 	console.error("No response");
+		// }
 		
 	};
 
@@ -131,8 +121,9 @@ export const CalendarApp = () => {
 			field: "start",
 			sortable: true,
 			filter: "agDateColumnFilter",
-			cellRenderer: (params: ICellRendererParams) =>
-				convertDate(params, params.data.type),
+			cellRenderer: (params: ICellRendererParams<ICalendarRowDataSchema>) => {
+				return convertDate(params)
+			},
 			editable: true,
 			cellEditor: DateCellEditor,
 			resizable: true,
@@ -141,8 +132,8 @@ export const CalendarApp = () => {
 			field: "end",
 			sortable: true,
 			filter: "agDateTimeColumnFilter",
-			cellRenderer: (params: ICellRendererParams) =>
-				convertDate(params, params.data.type),
+			cellRenderer: (params: ICellRendererParams<ICalendarRowDataSchema>) =>
+				convertDate(params),
 			editable: true,
 			cellEditor: "dateTimePicker", //DateCellEditor,
 			resizable: true,
@@ -243,19 +234,14 @@ export const CalendarApp = () => {
 				style={{ height: 1000 }}
 			>
 				<AgGridReact
+					
 					rowData={[...(data?.dateEvents ?? []), ...(data?.dateTimeEvents ?? [])]}
 					columnDefs={columnDefs}
 					ref={gridRef}
-					onCellValueChanged={(e: CellValueChangedEvent<z.infer<typeof calendarRowDataSchema>>) => {
-						const rowNode = e.node;
-						const rowIndex = rowNode.rowIndex;
-						if (rowIndex === null || rowIndex === undefined) {
-							return;
-						}
-						setChangedRows((prevChangedRows) =>
-							prevChangedRows.add(rowIndex)
-						);
+					onCellValueChanged={(e: CellValueChangedEvent<ICalendarRowDataSchema>) => { // new events will have "created" automatically on creation. deleted events will be hidden 
+						e.node.data?.changeType === "none" ?? e.node.setDataValue("changeType", "updated")
 					}}
+					
 					onGridSizeChanged={(params) =>
 						params.api.sizeColumnsToFit()
 					}

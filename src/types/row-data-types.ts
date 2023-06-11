@@ -1,10 +1,8 @@
-import { ICalendarEvent, IDateEventData, IDateTimeEventData } from "./event-types";
 import {
 	dateEventSchema,
 	dateTimeEventSchema,
 } from "./event-types";
 
-import { calendar_v3 } from "googleapis";
 import { z } from "zod";
 
 export const changeTypeSchema = z.union([
@@ -35,9 +33,9 @@ export type IDateEventRowDataSchema = z.infer<typeof dateEventRowDataSchema>;
 export type IDateTimeEventRowDataSchema = z.infer<typeof dateTimeEventRowDataSchema>;
 export type ICalendarRowDataSchema = IDateEventRowDataSchema | IDateTimeEventRowDataSchema;
 
-/**
- * Generates discriminated union types from an object type and a list of strings.
- */
+// /**
+//  * Generates discriminated union types from an object type and a list of strings.
+//  */
 // type GenerateChangeTypes<
 // 	TObject,
 // 	TDiscriminatorStrings extends readonly string[]
@@ -50,14 +48,11 @@ export type ICalendarRowDataSchema = IDateEventRowDataSchema | IDateTimeEventRow
 // 	["created", "updated", "deleted", "none"]
 // >;
 
-export type IPatchRowData = Extract<ICalendarRowDataSchema, { changeType: "updated" }>;
-export type IPostRowData = Extract<ICalendarRowDataSchema, { changeType: "created" }>;
-export type IDeleteRowData = Extract<ICalendarRowDataSchema, { changeType: "deleted" }>;
 
 export type IPostPatchDeleteRowData = {
-	patchRowData: IPatchRowData[];
-	postRowData: IPostRowData[];
-	deleteRowData: IDeleteRowData[];
+	patchRowData: ICalendarRowDataSchema[],
+	postRowData: ICalendarRowDataSchema[],
+	deleteRowData: ICalendarRowDataSchema[],
 };
 
 

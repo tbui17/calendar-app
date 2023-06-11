@@ -23,4 +23,5 @@ Upcoming updates:
     - Conditional row coloring based on event type
     - Recurring events
     - Save current table filters and sorting to user's profile
+    - Right click context menu options
 - 

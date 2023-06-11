@@ -2,11 +2,12 @@ import {
 	ICalendarEvent,
 	IDateEventData,
 	IDateTimeEventData,
+	IGetEventsArgs,
 	IValidPatchProps,
 	dateEventSchema,
 	dateTimeEventSchema,
 } from "../types/event-types";
-import axios, { AxiosInstance } from "axios";
+import axios, { AxiosInstance, AxiosResponse } from "axios";
 import { calendarRowDataSchema, dateEventRowDataSchema, dateTimeEventRowDataSchema } from "@/types/row-data-types";
 import { oneMonthAhead, oneMonthBehind } from "@/lib/date-functions";
 
@@ -36,7 +37,7 @@ export class WebCalendarClient { // TODO: add token refresh after fixing backend
 		endDate = oneMonthAhead(),
 		maxResults = 500,
 		calendarId = "primary"
-	}): Promise<{
+	}:IGetEventsArgs): Promise<{
 		dateEvents: {
 			id: string;
 			summary: string;
@@ -76,10 +77,10 @@ export class WebCalendarClient { // TODO: add token refresh after fixing backend
 	 * @throws {AxiosError}
 	 * @returns
 	 */
-	async updateEvent<T extends ICalendarEvent<IDateEventData | IDateTimeEventData>>(event: T) { 
+	async updateEvent<T extends IValidPatchProps & {id:string}>(event: T) { 
 		const { id, ...data } = event;
 		
-		const res = await this.instance.patch<calendar_v3.Schema$Event, IValidPatchProps>(
+		const res = await this.instance.patch<any, AxiosResponse<calendar_v3.Schema$Event>, IValidPatchProps>(
 			`https://www.googleapis.com/calendar/v3/calendars/primary/events/${id}`,
 			data
 			
@@ -98,7 +99,13 @@ export class WebCalendarClient { // TODO: add token refresh after fixing backend
 		return Promise.all(promises);
 	}
 
-	
+	/**
+	 * 
+	 * @param data 
+	 * @param unpack
+	 * @throws {ZodError} 
+	 * @returns 
+	 */
 	public static parseEvents(data: calendar_v3.Schema$Event[], unpack:boolean = false) {
 		// https://stackoverflow.com/questions/55149221/class-with-static-methods-vs-exported-functions-typescript
 		const eventContainer: {
@@ -109,15 +116,13 @@ export class WebCalendarClient { // TODO: add token refresh after fixing backend
 			dateTimeEvents: [],
 		};
 		data.forEach((event) => {
-			event.start?.date !== null && event.start?.date !== undefined
-				? eventContainer.dateEvents.push(dateEventRowDataSchema.parse(event))
-				: event.start?.dateTime !== null && event.start?.dateTime !== undefined
-				? eventContainer.dateTimeEvents.push(
-						dateTimeEventRowDataSchema.parse(event)
-				  )
-				: console.warn(
-						`Event ${event.summary} has no start date or start date time`
-				  );
+			if (event.start?.date !== null && event.start?.date !== undefined) {
+				eventContainer.dateEvents.push(dateEventRowDataSchema.parse(event));
+			  } else if (event.start?.dateTime !== null && event.start?.dateTime !== undefined) {
+				eventContainer.dateTimeEvents.push(dateTimeEventRowDataSchema.parse(event));
+			  } else {
+				console.warn(`Event ${event.summary} has no start date or start date time`);
+			  }
 		});
 		return eventContainer;
 		
