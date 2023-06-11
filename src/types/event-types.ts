@@ -4,7 +4,7 @@ import { O } from "ts-toolbelt";
 import { calendar_v3 } from "googleapis";
 import { z } from "zod";
 
-const undefinedOrNullStringCoerceSchema = z
+const stringSchemaCoercedFromUndefinedOrNull = z
 	.union([z.undefined(), z.null(), z.string()])
 	.transform((val) => {
 		return val === undefined || val === null ? "" : val;
@@ -14,7 +14,7 @@ const undefinedOrNullStringCoerceSchema = z
 export const baseEventSchema = z.object({
 	id: z.string(),
 	summary: z.string().default(""),
-	description: undefinedOrNullStringCoerceSchema,
+	description: stringSchemaCoercedFromUndefinedOrNull, // kept as example. this is not necessary. z.string().default("") is enough. there is no null in google event data.
 });
 
 // dates event schema
