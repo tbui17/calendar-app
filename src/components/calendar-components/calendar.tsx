@@ -125,7 +125,7 @@ export const CalendarApp = () => {
 				return convertDate(params)
 			},
 			editable: true,
-			cellEditor: DateCellEditor,
+			cellEditor: DateCellEditor, // TODO: make tab move to next field in input instead of next cell
 			resizable: true,
 		},
 		{
