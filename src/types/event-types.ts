@@ -23,12 +23,12 @@ export const preDateEventSchema = baseEventSchema.extend({
 	end: z.object({ date: z.string().regex(yyyymmddRegex) }),
 });
 
-export const dateEventSchema = preDateEventSchema.extend({
+export const dateEventSchema = preDateEventSchema.extend({ // adds the discriminant field to later make discriminated union
 	dateType: z.literal("date").default("date"),
 });
 
 // datetime event schema
-export const preDateTimeEventSchema = baseEventSchema.extend({
+export const preDateTimeEventSchema = baseEventSchema.extend({ //TODO: add timeZone field to datetime
 	start: z.object({ dateTime: z.string().regex(isoStringRegex) }),
 	end: z.object({ dateTime: z.string().regex(isoStringRegex) }),
 });
@@ -42,7 +42,7 @@ export const preCalendarEventSchema = z.union([
 	preDateTimeEventSchema,
 ]);
 
-export const calendarEventSchema = z.union([
+export const calendarEventSchema = z.discriminatedUnion("dateType", [
 	dateEventSchema,
 	dateTimeEventSchema,
 ]);

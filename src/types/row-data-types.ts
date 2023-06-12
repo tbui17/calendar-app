@@ -14,7 +14,7 @@ export const changeTypeSchema = z.union([
 
 
 
-export const dateEventRowDataSchema = dateEventSchema.extend({
+export const dateEventRowDataSchema = dateEventSchema.extend({ // changeType field tracks what data is changed and whether to send POST / PATCH / DELETE request to Google API server
 	changeType: changeTypeSchema.default("none")
 });
 
