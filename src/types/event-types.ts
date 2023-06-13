@@ -131,8 +131,8 @@ export type ICalendarEventContainer = {
 };
 
 // https://developers.google.com/calendar/api/v3/reference/events/list
-type GetListArgs = {
-	calendarId: string; // To retrieve calendar IDs call the calendarList.list method. To access the primary calendar of the currently logged in user, use the "primary" keyword【5†source】.
+export type GetListArgs = {
+	
 
 	eventTypes?: ("default" | "focusTime" | "outOfOffice")[]; // Event types to return. This parameter can be repeated multiple times to return events of different types. Currently, these are the only allowed values for this field: ["default", "focusTime", "outOfOffice"]【7†source】.
 	iCalUID?: string; // Specifies an event ID in the iCalendar format to be provided in the response. Use this if you want to search for an event by its iCalendar ID【11†source】.
@@ -151,33 +151,44 @@ type GetListArgs = {
 	timeMin?: string; // Lower bound (exclusive) for an event's end time to filter by. Must be an RFC3339 timestamp with mandatory time zone offset, for example, 2011-06-03T10:00:00-07:00, 2011-06-03T10:00:00Z. If timeMax```typescript
 };
 
-interface GetResponse {
-	kind: string; // Type of the collection (read-only)
-	etag: string; // ETag of the collection (read-only)
-	id: string; // Identifier of the event (read-only)
-	status?: string; // Status of the event
-	htmlLink: string; // An absolute link to the event in the Google Calendar Web UI (read-only)
-	created: string; // Creation time of the event in RFC3339 format, e.g., 2011-06-03T10:00:00-07:00 (read-only)
-	updated: string; // Last modification time of the event in RFC3339 format, e.g., 2011-06-03T10:00:00-07:00 (read-only)
-	summary?: string; // Title of the event
-	description?: string; // Description of the event
-	location?: string; // Geographic location of the event as free-form text
-	colorId?: string; // The color of the event. This is an ID referring to an entry in the event section of the colors definition
-	creator: object; // The creator of the event (read-only)
-	organizer: object; // The organizer of the event (read-only)
-	start: object; // The (inclusive) start time of the event
-	end: object; // The (exclusive) end time of the event
-	endTimeUnspecified?: boolean; // Whether the end time is actually unspecified
-	recurrence?: string[]; // List of RRULE, EXDATE and EXRULE lines for a recurring event, as specified in RFC5545
-	recurringEventId?: string; // For an instance of a recurring event, this is the id of the recurring event to which this instance belongs (Immutable)
-	originalStartTime?: object; // For an instance of a recurring event, this is the time at which this event would start according to the recurrence data in the recurring event identified by recurringEventId
-	transparency?: string; // Whether this event blocks time on the calendar
-	visibility?: string; // Visibility of the event
-	iCalUID: string; // Event unique identifier as defined in RFC5545
-	sequence: number; // Sequence number of the event (read-only)
-	attendees: object[]; // The attendees of the event
-	attendeesOmitted: boolean; // Whether attendees may have been omitted from the event's representation (read-only)
+export type IGetResponse = {
+    kind:             string;
+    etag:             string;
+    summary:          string;
+    updated:          string;
+    timeZone:         string;
+    accessRole:       string;
+    defaultReminders: { method: string; minutes: number }[];
+    nextSyncToken:    string;
+    items:            calendar_v3.Schema$Event[];
 }
+
+// type _unknown_item = {
+//     kind:                   Kind;
+//     etag:                   string;
+//     id:                     string;
+//     status:                 Status;
+//     htmlLink:               string;
+//     created:                Date;
+//     updated:                Date;
+//     summary:                string;
+//     description?:           string;
+//     creator:                Creator;
+//     organizer:              Organizer;
+//     start:                  End;
+//     end:                    End;
+//     recurringEventId?:      string;
+//     originalStartTime?:     OriginalStartTime;
+//     iCalUID:                string;
+//     sequence:               number;
+//     extendedProperties?:    ExtendedProperties;
+//     reminders:              Reminders;
+//     eventType:              EventType;
+//     location?:              string;
+//     attendees?:             Attendee[];
+//     guestsCanInviteOthers?: boolean;
+//     privateCopy?:           boolean;
+// }
 
 interface _EventResource {
 	kind: string;

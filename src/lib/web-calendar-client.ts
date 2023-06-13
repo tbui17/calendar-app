@@ -3,6 +3,7 @@ import {
 	IDateEventData,
 	IDateTimeEventData,
 	IGetEventsArgs,
+	IGetResponse,
 	IValidPatchProps,
 	dateEventSchema,
 	dateTimeEventSchema,
@@ -21,6 +22,7 @@ import { z } from "zod";
 // https://developers.google.com/calendar/api/v3/reference/events/list
 export class WebCalendarClient {
 	// TODO: add token refresh after fixing backend
+
 	private instance: AxiosInstance;
 	constructor(private access_token: string) {
 		this.instance = axios.create({
@@ -37,12 +39,17 @@ export class WebCalendarClient {
 	 * @throws {AxiosError}
 	 * @returns
 	 */
-	async getEvents({
-		startDate = oneMonthBehind(),
-		endDate = oneMonthAhead(),
-		maxResults = 500,
-		calendarId = "primary",
-	}: IGetEventsArgs): Promise<{
+	async getEvents(
+		{
+			startDate = oneMonthBehind(),
+			endDate = oneMonthAhead(),
+			maxResults = 500,
+			calendarId = "primary",
+		}: IGetEventsArgs,
+		{ parser = new DateEventParser() }: IAddOnArgs = {
+			parser: new DateEventParser(),
+		}
+	): Promise<{
 		dateEvents: {
 			id: string;
 			summary: string;
@@ -60,20 +67,20 @@ export class WebCalendarClient {
 			dateType: "dateTime";
 		}[];
 	}> {
-		const res = await this.instance.get<calendar_v3.Schema$Event[]>(
-			"https://www.googleapis.com/calendar/v3/calendars/primary/events",
-			{
-				params: {
-					calendarId,
-					timeMin: startDate.toISOString(),
-					timeMax: endDate.toISOString(),
-					maxResults,
-					singleEvents: false, // Whether to expand recurring events into instances and only return single one-off events and instances of recurring events, but not the underlying recurring events themselves. Optional. The default is False.
-					orderBy: "startTime",
-				},
-			}
-		);
-		return WebCalendarClient.parseEvents(res.data);
+		const res = await this.instance.get<
+			any,
+			AxiosResponse<IGetResponse>,
+			IGetEventsArgs
+		>("https://www.googleapis.com/calendar/v3/calendars/primary/events", {
+			params: {
+				calendarId,
+				timeMin: startDate.toISOString(),
+				timeMax: endDate.toISOString(),
+				maxResults,
+				singleEvents: false, // Whether to expand recurring events into instances and only return single one-off events and instances of recurring events, but not the underlying recurring events themselves. Optional. The default is False.
+			},
+		});
+		return parser.parseEvents(res.data.items);
 	}
 
 	/**
@@ -110,7 +117,18 @@ export class WebCalendarClient {
 		const promises = events.map((event) => this.updateEvent(event));
 		return Promise.all(promises);
 	}
+}
 
+type IParsedGetResponse = {
+	dateEvents: z.infer<typeof dateEventSchema>[];
+	dateTimeEvents: z.infer<typeof dateTimeEventSchema>[];
+};
+
+interface GoogleEventParser<TReturnType> {
+	parseEvents(data: calendar_v3.Schema$Event[]): TReturnType;
+}
+
+export class DateEventParser implements GoogleEventParser<IParsedGetResponse> {
 	/**
 	 *
 	 * @param data
@@ -118,18 +136,14 @@ export class WebCalendarClient {
 	 * @throws {ZodError}
 	 * @returns
 	 */
-	public static parseEvents(
-		data: calendar_v3.Schema$Event[],
-		unpack: boolean = false
-	) {
+	public parseEvents(data: calendar_v3.Schema$Event[]) {
 		// https://stackoverflow.com/questions/55149221/class-with-static-methods-vs-exported-functions-typescript
-		const eventContainer: {
-			dateEvents: z.infer<typeof dateEventSchema>[];
-			dateTimeEvents: z.infer<typeof dateTimeEventSchema>[];
-		} = {
+		const eventContainer: IParsedGetResponse = {
 			dateEvents: [],
 			dateTimeEvents: [],
 		};
+		if (data.length === 0 || data === undefined) return eventContainer;
+
 		data.forEach((event) => {
 			if (event.start?.date !== null && event.start?.date !== undefined) {
 				eventContainer.dateEvents.push(
@@ -151,3 +165,10 @@ export class WebCalendarClient {
 		return eventContainer;
 	}
 }
+
+type IAddOnArgs = {
+	parser: GoogleEventParser<IParsedGetResponse>;
+};
+
+
+

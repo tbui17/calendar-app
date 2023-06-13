@@ -1,6 +1,6 @@
+import { DateEventParser, WebCalendarClient } from "@/lib/web-calendar-client";
 import { describe, expect, it } from "vitest";
 
-import { WebCalendarClient } from "@/lib/web-calendar-client";
 import dotenv from "dotenv";
 import fs from "fs";
 import { twoGetEvents } from "testData/twoGetEvents";
@@ -9,7 +9,7 @@ dotenv.config();
 
 describe("WebCalendarClient.parseEvents", () => {
 	it("should not throw and have truthy value", () => {
-		const res = WebCalendarClient.parseEvents(twoGetEvents);
+		const res = new DateEventParser().parseEvents(twoGetEvents);
 
 		expect(res).toBeTruthy();
 	});
@@ -21,7 +21,7 @@ describe("WebCalendarClient.parseEvents", () => {
 
 		const largeDataSet: any[] = r.items;
 
-		const eventResults = WebCalendarClient.parseEvents(largeDataSet);
+		const eventResults = new DateEventParser().parseEvents(largeDataSet);
 		for (const event of eventResults.dateEvents) {
 			expect(event).toMatchObject({
 				id: expect.any(String),
