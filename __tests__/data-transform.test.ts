@@ -1,11 +1,12 @@
 import {describe, expect, it} from "vitest"
 
+import { ICalendarRowDataSchema } from "@/types/row-data-types"
 import { filterAndTransformDateAndDateEvents } from "@/lib/filter-date-or-datevent"
 
 describe("filterAndTransformDateAndDateEvents", () => {
     
     it("should return data matching expected schema", () => {
-        const testData = [
+        const testData:ICalendarRowDataSchema[] = [
             {
                 "id": "g6gvekuku403i2cqa0nb392jcs",
                 "summary": "testevent111ac",

@@ -19,11 +19,13 @@ import { ToastContainer, toast } from "react-toastify";
 
 import { AgGridReact } from "ag-grid-react";
 import { DatePicker } from "./date-picker";
+import ErrorAccessTokenExpired from "../error-access-token-expired";
 import { IOutboundEventSchema } from "@/types/event-types";
+import PickerRendererMUI from "./picker-renderer-mui";
 import { convertDate } from "@/lib/convert-date";
 import { filterAndTransformDateAndDateEvents } from "@/lib/filter-date-or-datevent";
 import { filterEventMutations } from "@/lib/filter-event-mutations";
-import pickerRendererMUI from "./picker-renderer-mui";
+import { isAxiosError } from "axios";
 import { useDateRange } from "@/hooks/useDateRange";
 import { useGetCalendar } from "@/hooks/useGetCalendar";
 import { usePatchCalendar } from "@/hooks/usePatchCalendar";
@@ -37,6 +39,7 @@ export const CalendarApp = () => {
 		data: dataFromGetCalendar,
 		isFetching,
 		refetch,
+		isError,
 		error,
 	} = useGetCalendar({
 		startDate: new Date(startDate),
@@ -149,7 +152,7 @@ export const CalendarApp = () => {
 				return convertDate(params);
 			},
 			editable: true,
-			cellEditor: pickerRendererMUI,
+			cellEditor: PickerRendererMUI,
 			resizable: true,
 		},
 		{
@@ -160,7 +163,7 @@ export const CalendarApp = () => {
 				params: ICellRendererParams<ICalendarRowDataSchema>
 			) => convertDate(params),
 			editable: true,
-			cellEditor: pickerRendererMUI,
+			cellEditor: PickerRendererMUI,
 			resizable: true,
 		},
 	];
@@ -170,28 +173,22 @@ export const CalendarApp = () => {
 
 	// rendering
 
-	// if (error) { //TODO: find out if this is redundant, mutateAsync does not handle error for you. errorboundary already set up. 
-	// 	// ??? empty error is possible?
-	// 	if (isAxiosError(error)) {
-	// 		if (error.response?.status === 401) {
-	// 			console.error("Expired token");
-	// 			return (
-	// 				<>
-	// 					<ErrorAccessTokenExpired />
-	// 				</>
-	// 			);
-	// 		} else {
-	// 			return (
-	// 				<>
-	// 					<div>An error has occurred. </div>
-	// 					<div>{error.message}</div>
-	// 				</>
-	// 			);
-	// 		}
-	// 	} else {
-	// 		return <div>Something went wrong</div>;
-	// 	}
-	// }
+	if (isError) {
+		// Check if error is an Axios error
+		if (isAxiosError(error)) {
+		  if (error.response?.status === 401) {
+			console.error("Expired token");
+			return (
+			  <>
+				<ErrorAccessTokenExpired />
+			  </>
+			);
+		  }
+		} else if (error instanceof Error) {
+		  toast("An error occurred.");
+		  console.error(error);
+		}
+	  }
 
 	return (
 		<>
