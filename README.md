@@ -1,4 +1,4 @@
-
+# Google Calendar Table
 
 **[website link](https://calendar-app-xi.vercel.app/)**
 
@@ -24,4 +24,3 @@ Upcoming updates:
     - Recurring events
     - Save current table filters and sorting to user's profile
     - Right click context menu options
-- 
