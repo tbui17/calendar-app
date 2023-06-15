@@ -107,7 +107,7 @@ export const CalendarApp = () => {
 		const promises = eventsCombined.map((item) => {
 			return updateMutation.mutateAsync(item);
 		});
-		await Promise.all(promises).catch()
+		await Promise.all(promises)
 		queryClient.invalidateQueries({
 			queryKey: ["events"],
 			
