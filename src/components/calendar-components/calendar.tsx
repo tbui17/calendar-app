@@ -7,243 +7,206 @@ import "react-toastify/dist/ReactToastify.css";
 import {
 	CellValueChangedEvent,
 	ColDef,
-	ICellEditorParams,
 	ICellRendererParams,
+	ValueParserParams,
 } from "ag-grid-community";
-import React, { ChangeEvent, useEffect, useRef, useState } from "react";
-import { ToastContainer, toast } from "react-toastify";
 import {
-	oneMonthAheadYYYYMMDD,
-	oneMonthBehindYYYYMMDD,
-} from "@/utils/date-functions";
-import { signOut, useSession } from "next-auth/react";
+	ICalendarRowDataSchema,
+	calendarRowDataSchema,
+} from "@/types/row-data-types";
+import React, { useEffect, useRef, useState } from "react";
+import { ToastContainer, toast } from "react-toastify";
 
 import { AgGridReact } from "ag-grid-react";
-import DateCellEditor from "./date-editor";
 import { DatePicker } from "./date-picker";
-import { ITransformedEvent } from "@/modules/types";
-import { WebCalendarClient } from "@/modules/web-calendar-client";
-import { isAxiosError } from "axios";
-import moment from "moment";
-import { useQuery } from "@tanstack/react-query";
-
-const defaultData: ITransformedEvent[] = [
-	{
-		type: "date",
-		id: "1",
-		description: "description default",
-		summary: "summary default",
-		start: new Date("07-01-2023"),
-		end: new Date("07-02-2023"),
-	},
-	{
-		id: "2",
-		description: "description default2",
-		summary: "summary default2",
-		start: new Date("07-04-2023"),
-		end: new Date("07-05-2023"),
-		type: "date",
-	},
-	{
-		id: "3",
-		description: "description default3",
-		summary: "summary default3",
-		start: new Date("07/05/2023 09:00 AM"),
-		end: new Date("07/05/2023 10:00 AM"),
-		type: "dateTime",
-	},
-];
+import { IOutboundEventSchema } from "@/types/event-types";
+import { convertDate } from "@/lib/convert-date";
+import { filterAndTransformDateAndDateEvents } from "@/lib/filter-date-or-datevent";
+import { filterEventMutations } from "@/lib/filter-event-mutations";
+import pickerRendererMUI from "./picker-renderer-mui";
+import { useDateRange } from "@/hooks/useDateRange";
+import { useGetCalendar } from "@/hooks/useGetCalendar";
+import { usePatchCalendar } from "@/hooks/usePatchCalendar";
+import { useQueryClient } from "@tanstack/react-query";
+import { useToastEffect } from "@/hooks/useToastEffect";
 
 export const CalendarApp = () => {
-	const session = useSession({ required: true });
-	const [startDate, setStartDate] = useState(oneMonthBehindYYYYMMDD());
-	const [endDate, setEndDate] = useState(oneMonthAheadYYYYMMDD());
-	const gridRef = useRef<AgGridReact<ITransformedEvent>>(null);
-	const [changedRows, setChangedRows] = useState(new Set<number>());
+	// hooks
+	const { endDate, setEndDate, setStartDate, startDate } = useDateRange();
+	const {
+		data: dataFromGetCalendar,
+		isFetching,
+		refetch,
+		error,
+	} = useGetCalendar({
+		startDate: new Date(startDate),
+		endDate: new Date(endDate),
+	});
+	const gridRef = useRef<AgGridReact<ICalendarRowDataSchema>>(null);
 	const [hasDataFetched, setHasDataFetched] = useState(false);
-	const { data, error, refetch, isFetched, isFetching } = useQuery(
-		["events"],
-		 async () => { // don't need async await with react query
-			// @ts-ignore
-			const token: string = session.data?.access_token;
+	const [isPatching, setIsPatching] = useState(false); // temp
+	const updateMutation = usePatchCalendar();
+	const queryClient = useQueryClient();
+	
+	useToastEffect({
+		condition: !!dataFromGetCalendar && dataFromGetCalendar.length === 0 && !isFetching, 
+		toastMessage: "No events found",
+		dependencies: [dataFromGetCalendar, isFetching],
+	})
 
-			try {
-				console.log("fetching...");
-				return new WebCalendarClient(token).getAllEvents(
-					new Date(startDate),
-					new Date(endDate)
-				);
-				
-				
-			} catch (error) {
-				if (isAxiosError(error) && error.response?.status === 401) {
-					console.error("token expired");
-					console.error(error);
-					signOut();
-					return;
-				}
-				console.error("unknown error");
-				throw error;
-			}
-		},
-		{
-			refetchOnWindowFocus: false,
-			enabled: false,
-			initialData: defaultData,
-			retry: false,
-			
+	useToastEffect({
+		condition: !isFetching && !isPatching && !!dataFromGetCalendar?.length,
+		toastMessage: "Events retrieved",
+		dependencies: [dataFromGetCalendar, isFetching],
+	});
+
+	// handlers
+
+	function handleCellChange(
+		e: CellValueChangedEvent<ICalendarRowDataSchema>
+	) {
+		
+		if (e.data?.changeType === "none") {
+			e.data.changeType = "updated";
 		}
-	);
-	
-	useEffect(() => {
-		isFetched && toast("Events retrieved")
 		
-		
-			
-		
-		
-	},[data])
-	
-
-
+	}
 
 	const handleFetchClick = async () => {
-		refetch();
+		await refetch();
 		setHasDataFetched(true);
 	};
 
-	const sendData = async (data: ITransformedEvent[]) => {
-		// @ts-ignore
-		const token: string = session.data?.access_token;
-		const res = await new WebCalendarClient(token).updateMultipleEvents(
-			data
-		);
-		return res;
-	};
-
-	const handleStartDate = (e: ChangeEvent<HTMLInputElement>) => {
-		setStartDate(e.target.value);
-	};
-
-	const handleEndDate = (e: ChangeEvent<HTMLInputElement>) => {
-		setEndDate(e.target.value);
-	};
-
-	const convertDate = (
-		data: ICellRendererParams<Date, Date>,
-		type: string
-	) => {
-		if (type === "date") return moment(data.value).format("MM-DD-YYYY");
-		if (type === "dateTime") {
-			return moment(data.value).format("MM-DD-YYYY hh:mm A");
-		} else {
-			throw new Error("Invalid type");
-		}
-	};
-
 	const handleSendClick = async () => {
-		const eventData: ITransformedEvent[] = [];
-		const model = gridRef.current?.api.getModel();
-		changedRows.forEach((rowIndex) => {
-			const rowNode = model?.getRowNode(rowIndex.toString());
-			if (rowNode?.data) {
-				eventData.push(rowNode.data);
-			}
-		});
-		if (eventData.length === 0) {
-			toast("No events to send");
+		if (!dataFromGetCalendar) {
+			toast("No data");
 			return;
 		}
-		const res = await sendData(eventData);
-		let success: boolean = true;
+
+		const filterEventMutationsResult = filterEventMutations(
+			dataFromGetCalendar,
+			"updated"
+		);
+		if (filterEventMutationsResult.length === 0) {
+			toast("No modified events.");
+			return;
+		}
+
+		// console.log(filterEventMutationsResult);
 		
-		if (res) {
-			res.forEach((result) => {
-				if (!result) {
-					success = false;
-				}
-			});
-			if (success) {
-				toast(`Successfully updated ${res.length} events`);
-			} else {
-				toast("There was an error updating the events");
-			}
-		} else {
-			toast("No response");
-			console.error("No response");
-		}
-		setChangedRows(new Set<number>());
+		const filteredResults = filterAndTransformDateAndDateEvents(
+			filterEventMutationsResult
+		);
+		// console.log(filteredResults)
+		const eventsCombined: IOutboundEventSchema[] = [
+			...filteredResults.dateEvents,
+			...filteredResults.dateTimeEvents,
+		];
+		
+		// console.log(eventsCombined)
+		const promises = eventsCombined.map((item) => {
+			return updateMutation.mutateAsync(item);
+		});
+		await Promise.all(promises).catch()
+		queryClient.invalidateQueries({
+			queryKey: ["events"],
+			
+
+		})
+		setIsPatching(true);
+		// await handleFetchClick(); // TODO: redundant?
+		toast("Success");
+		setIsPatching(false);
+
+		
 	};
-	const handleCellValueChanged = (
-		event: CellValueChangedEvent<ITransformedEvent>
-	) => {
-		const rowNode = event.node;
-		const rowIndex = rowNode.rowIndex;
-		if (rowIndex === null || rowIndex === undefined) {
-			return;
-		}
-		setChangedRows((prevChangedRows) => prevChangedRows.add(rowIndex));
-	};
+
+	// table configs
 
 	const defaultColumnDefs: ColDef[] = [
-		{ field: "id", sortable: true, filter: true, resizable:true },
-		{ field: "description", sortable: true, filter: true, editable: true, resizable:true },
-		{ field: "summary", sortable: true, filter: true, editable: true, resizable:true },
+		{ field: "id", sortable: true, filter: true, resizable: true },
+		{
+			field: "description",
+			sortable: true,
+			filter: true,
+			editable: true,
+			resizable: true,
+		},
+		{
+			field: "summary",
+			sortable: true,
+			filter: true,
+			editable: true,
+			resizable: true,
+		},
 		{
 			field: "start",
 			sortable: true,
 			filter: "agDateColumnFilter",
-			cellRenderer: (params: ICellRendererParams) =>
-				convertDate(params, params.data.type),
+			cellRenderer: (
+				params: ICellRendererParams<ICalendarRowDataSchema>
+			) => {
+				return convertDate(params);
+			},
 			editable: true,
-			cellEditor: DateCellEditor,
-			resizable:true
+			cellEditor: pickerRendererMUI,
+			resizable: true,
 		},
 		{
 			field: "end",
 			sortable: true,
-			filter: "agDateColumnFilter",
-			cellRenderer: (params: ICellRendererParams) =>
-				convertDate(params, params.data.type),
+			filter: "agDateTimeColumnFilter",
+			cellRenderer: (
+				params: ICellRendererParams<ICalendarRowDataSchema>
+			) => convertDate(params),
 			editable: true,
-			cellEditor: DateCellEditor,
-			resizable:true
+			cellEditor: pickerRendererMUI,
+			resizable: true,
 		},
 	];
 
 	// const [rowData, setRowData] = useState<ITransformedEvent[]>(defaultData);
-	const [columnDefs, setColumnDefs] = useState<ColDef[]>(defaultColumnDefs);
+	const [columnDefs] = useState<ColDef[]>(defaultColumnDefs);
 
-	if (error) {
-		if (isAxiosError(error)) {
-			if (error.response?.status === 401) {
-				console.error("Expired token");
-				signOut();
-				
-			}
-			else {
-			return (
-				<>
-					<div>An error has occurred. </div>
-					<div>{error.message}</div>
-				</>
-			)}
-		} else {
-			return <div>Something went wrong</div>;
-		}
-	}
+	// rendering
+
+	// if (error) { //TODO: find out if this is redundant, mutateAsync does not handle error for you. errorboundary already set up. 
+	// 	// ??? empty error is possible?
+	// 	if (isAxiosError(error)) {
+	// 		if (error.response?.status === 401) {
+	// 			console.error("Expired token");
+	// 			return (
+	// 				<>
+	// 					<ErrorAccessTokenExpired />
+	// 				</>
+	// 			);
+	// 		} else {
+	// 			return (
+	// 				<>
+	// 					<div>An error has occurred. </div>
+	// 					<div>{error.message}</div>
+	// 				</>
+	// 			);
+	// 		}
+	// 	} else {
+	// 		return <div>Something went wrong</div>;
+	// 	}
+	// }
 
 	return (
 		<>
 			<div>
-			<div className="pb-4"><p>Choose the date range to fetch calendar data.</p></div>
+				<div className="pb-4">
+					<p>Choose the date range to fetch calendar data.</p>
+				</div>
 				<div className="flex">
-					
 					<div className="pb-5 pr-9">
 						<DatePicker
 							id="startDate"
 							value={startDate}
-							onChange={handleStartDate}
+							onChange={(e) => {
+								setStartDate(e.target.value);
+							}}
 							labelName="from"
 						/>
 					</div>
@@ -251,12 +214,14 @@ export const CalendarApp = () => {
 						<DatePicker
 							id="endDate"
 							value={endDate}
-							onChange={handleEndDate}
+							onChange={(e) => {
+								setEndDate(e.target.value);
+							}}
 							labelName="to"
 						/>
 					</div>
-					<div className = "pl-96">
-						<p>{isFetching && "Fetching data..."}</p>
+					<div className="pl-96">
+						<p>{(isFetching || isPatching) && "Loading..."}</p>
 					</div>
 				</div>
 				<div className="flex">
@@ -264,7 +229,7 @@ export const CalendarApp = () => {
 						<button
 							onClick={handleFetchClick}
 							type="button"
-							className="mb-2 mr-2 rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+							className={`mb-2 mr-2 rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800`}
 						>
 							Fetch Data
 						</button>
@@ -273,7 +238,11 @@ export const CalendarApp = () => {
 					<button
 						onClick={handleSendClick}
 						type="button"
-						className={`mb-2 mr-2 rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 ${hasDataFetched ? "" : "opacity-50 cursor-not-allowed"}`}
+						className={`mb-2 mr-2 rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 ${
+							hasDataFetched
+								? ""
+								: "cursor-not-allowed opacity-50"
+						}`}
 						disabled={!hasDataFetched}
 					>
 						Send Data
@@ -287,12 +256,13 @@ export const CalendarApp = () => {
 				style={{ height: 1000 }}
 			>
 				<AgGridReact
-					rowData={data}
+					rowData={dataFromGetCalendar || []}
 					columnDefs={columnDefs}
 					ref={gridRef}
-					onCellValueChanged={handleCellValueChanged}
-					onGridSizeChanged={(params) => params.api.sizeColumnsToFit()}
-					
+					onCellValueChanged={(e) => handleCellChange(e)}
+					onGridSizeChanged={(params) =>
+						params.api.sizeColumnsToFit()
+					}
 				/>
 			</div>
 			<ToastContainer theme="dark" />

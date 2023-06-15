@@ -1,7 +1,7 @@
 import { Ref, forwardRef, useImperativeHandle, useState } from "react";
 
+import { ICalendarRowDataSchema } from "@/types/row-data-types";
 import { ICellEditorParams } from "ag-grid-community";
-import { ITransformedEvent } from "@/modules/types";
 import moment from "moment";
 
 interface DateCellEditorRef {
@@ -21,23 +21,24 @@ function createDateSettings(dataType: string, date: Date) {
 }
 
 function DateCellEditor(
-	props: ICellEditorParams<ITransformedEvent, string>,
+	props: ICellEditorParams<ICalendarRowDataSchema, string>,
 	ref: Ref<DateCellEditorRef>
 ) {
 	const [date, setDate] = useState(new Date(props.value));
-	const settings = createDateSettings(props.data.type, date);
+	const settings = createDateSettings(props.data.dateType, date);
 
-	const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => { 
+	const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		
 		settings.type === "date"
-			? setDate(
+			? setDate(() => {
+				
+					const inputDate = new Date(
+						new Date(e.target.value).toISOString()
+					);
 					
-						() => {
-              const inputDate = new Date(new Date(e.target.value).toISOString())
-              inputDate.setDate(inputDate.getDate() + 1)
-              return inputDate
-            }
-					
-			  )
+					inputDate.setDate(inputDate.getDate() + 1);
+					return inputDate;
+			  })
 			: setDate(new Date(e.target.value));
 	};
 
@@ -52,7 +53,7 @@ function DateCellEditor(
 	useImperativeHandle(ref, () => {
 		return {
 			getValue() {
-				return date
+				return date;
 			},
 		};
 	});
@@ -70,6 +71,6 @@ function DateCellEditor(
 	);
 }
 
-DateCellEditor.displayName = "DateCellEditor";
+DateCellEditor.displayName = "DateCellEditor"; // TODO: check if still necessary, component is now a named function
 
-export default forwardRef(DateCellEditor);
+forwardRef(DateCellEditor);

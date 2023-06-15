@@ -31,7 +31,7 @@ export class QueryParams {
 	}
 }
 
-export class FirebaseClient {
+export class FirebaseClient { //TODO: Refactor into monads (ex: Result<TData, TError>) or use https://github.com/true-myth/true-myth
 	db: Firestore;
 	constructor() {
 		this.db = db;
