@@ -21,11 +21,11 @@ import { AgGridReact } from "ag-grid-react";
 import { DatePicker } from "./date-picker";
 import ErrorAccessTokenExpired from "../error-access-token-expired";
 import { IOutboundEventSchema } from "@/types/event-types";
+import PickerRendererMUI from "./picker-renderer-mui";
 import { convertDate } from "@/lib/convert-date";
 import { filterAndTransformDateAndDateEvents } from "@/lib/filter-date-or-datevent";
 import { filterEventMutations } from "@/lib/filter-event-mutations";
 import { isAxiosError } from "axios";
-import pickerRendererMUI from "./picker-renderer-mui";
 import { useDateRange } from "@/hooks/useDateRange";
 import { useGetCalendar } from "@/hooks/useGetCalendar";
 import { usePatchCalendar } from "@/hooks/usePatchCalendar";
@@ -152,7 +152,7 @@ export const CalendarApp = () => {
 				return convertDate(params);
 			},
 			editable: true,
-			cellEditor: pickerRendererMUI,
+			cellEditor: PickerRendererMUI,
 			resizable: true,
 		},
 		{
@@ -163,7 +163,7 @@ export const CalendarApp = () => {
 				params: ICellRendererParams<ICalendarRowDataSchema>
 			) => convertDate(params),
 			editable: true,
-			cellEditor: pickerRendererMUI,
+			cellEditor: PickerRendererMUI,
 			resizable: true,
 		},
 	];
