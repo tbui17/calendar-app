@@ -14,14 +14,18 @@ export const changeTypeSchema = z.union([
 
 
 
+
 export const dateEventRowDataSchema = dateEventSchema.extend({ // changeType field tracks what data is changed and whether to send POST / PATCH / DELETE request to Google API server
-	changeType: changeTypeSchema.default("none")
-});
-
-
+	changeType: changeTypeSchema.default("none"),
+	start: z.coerce.date(),
+	end: z.coerce.date(),
+	
+})
 
 export const dateTimeEventRowDataSchema = dateTimeEventSchema.extend({
-	changeType: changeTypeSchema.default("none")
+	changeType: changeTypeSchema.default("none"),
+	start: z.coerce.date(),
+	end: z.coerce.date(),
 });
 
 export const calendarRowDataSchema = z.union([dateEventRowDataSchema, dateTimeEventRowDataSchema]);

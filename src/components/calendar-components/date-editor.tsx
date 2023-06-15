@@ -28,11 +28,14 @@ function DateCellEditor(
 	const settings = createDateSettings(props.data.dateType, date);
 
 	const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		
 		settings.type === "date"
 			? setDate(() => {
+				
 					const inputDate = new Date(
 						new Date(e.target.value).toISOString()
 					);
+					
 					inputDate.setDate(inputDate.getDate() + 1);
 					return inputDate;
 			  })
@@ -70,4 +73,4 @@ function DateCellEditor(
 
 DateCellEditor.displayName = "DateCellEditor"; // TODO: check if still necessary, component is now a named function
 
-export default forwardRef(DateCellEditor);
+forwardRef(DateCellEditor);

@@ -5,9 +5,9 @@ export default function ErrorAccessTokenExpired() {
 	
 	return (
 		<div>
-			<h1>Access token expired</h1>
-			<p>Please login again</p>
-			<BaseButton onClick={() => signOut()} />
+			<h1>Access token expired.</h1>
+			<p>Please sign out and login again.</p>
+			<BaseButton buttonText="Sign out" onClick={() => signOut()} />
 		</div>
 	);
 }

@@ -3,7 +3,7 @@ import { useEffect } from "react";
 
 type useToastEffectProps = {
     toastMessage: string,
-    condition: boolean,
+    condition?: boolean,
     dependencies: any[]
 }
 
@@ -14,12 +14,9 @@ type useToastEffectProps = {
  * @param dependencies 
  */
 export const useToastEffect = (
-    { toastMessage, condition, dependencies }: useToastEffectProps
+    { toastMessage, condition=true, dependencies }: useToastEffectProps
 ) => {
   useEffect(() => {
-    if (condition) {
-      toast("Dependencies changed");
-    }
     condition && toast(toastMessage)
   }, dependencies);
 };

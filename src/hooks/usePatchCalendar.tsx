@@ -1,10 +1,10 @@
 import { UseMutationResult, useMutation } from "@tanstack/react-query";
 
+import { AxiosError } from "axios";
+import { IOutboundEventSchema } from "@/types/event-types";
 import { Session } from "next-auth";
 import { WebCalendarClient } from "@/lib/web-calendar-client";
-import { preCalendarEventSchema } from "@/types/event-types";
 import { useSession } from "next-auth/react";
-import {z} from "zod"
 
 /**
  * A custom React hook that fetches calendar events from the server using the provided session token.
@@ -12,23 +12,23 @@ import {z} from "zod"
  * @returns {DefinedUseQueryResult} - The result of the query.
  */
 
-export const usePatchCalendar = (data: z.infer<typeof preCalendarEventSchema>[]):UseMutationResult => {
+export const usePatchCalendar = (): UseMutationResult<any, AxiosError, IOutboundEventSchema> => {
 	const sessionData = useSession().data as Session & { access_token: string };
-	return useMutation(
-		["patch-calendar"],
-		async () => {
+	const token = sessionData?.access_token
+	const client = new WebCalendarClient(token)
 
-                    const token = sessionData?.access_token
-                    
-                    return await new WebCalendarClient(token).updateMultipleEvents(
-                        data
-                    );
-                    
-                
-            
-                
-            ;
-		},
+	return useMutation(
+		
+		async (data: IOutboundEventSchema) => {
+			return client.updateEvent(data)
+		},{
+			retry(failureCount, error) {
+				if (error instanceof AxiosError && error.response?.status === 403) {
+					return failureCount < 5
+				}
+				return false
+			},
+		}
 		
 	);
 };

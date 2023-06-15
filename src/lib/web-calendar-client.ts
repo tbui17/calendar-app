@@ -1,3 +1,4 @@
+import { DEFAULT_CALENDAR_ID, DEFAULT_END_DATE, DEFAULT_MAX_QUERY_RESULTS, DEFAULT_START_DATE } from "@/configs/default-calendar-client-configs";
 import {
 	ICalendarEvent,
 	IDateEventData,
@@ -5,17 +6,16 @@ import {
 	IGetEventsArgs,
 	IGetResponse,
 	IValidPatchProps,
-	dateEventSchema,
-	dateTimeEventSchema,
 } from "../types/event-types";
 import axios, { AxiosInstance, AxiosResponse } from "axios";
-import {
-	calendarRowDataSchema,
-	dateEventRowDataSchema,
-	dateTimeEventRowDataSchema,
-} from "@/types/row-data-types";
 import { oneMonthAhead, oneMonthBehind } from "@/lib/date-functions";
 
+import { DateEventParser } from "./parsers";
+import { IGoogleEventParser } from "./parsers";
+import { IParsedGetResponse } from "./parsers";
+import {
+	calendarRowDataSchema,
+} from "@/types/row-data-types";
 import { calendar_v3 } from "googleapis";
 import { z } from "zod";
 
@@ -41,32 +41,13 @@ export class WebCalendarClient {
 	 */
 	async getEvents(
 		{
-			startDate = oneMonthBehind(),
-			endDate = oneMonthAhead(),
-			maxResults = 500,
-			calendarId = "primary",
-		}: IGetEventsArgs,
-		{ parser = new DateEventParser() }: IAddOnArgs = {
-			parser: new DateEventParser(),
-		}
-	): Promise<{
-		dateEvents: {
-			id: string;
-			summary: string;
-			description: string;
-			start: { date: string };
-			end: { date: string };
-			dateType: "date";
-		}[];
-		dateTimeEvents: {
-			id: string;
-			summary: string;
-			description: string;
-			start: { dateTime: string };
-			end: { dateTime: string };
-			dateType: "dateTime";
-		}[];
-	}> {
+			startDate = DEFAULT_START_DATE,
+			endDate = DEFAULT_END_DATE,
+			maxResults = DEFAULT_MAX_QUERY_RESULTS,
+			calendarId = DEFAULT_CALENDAR_ID,
+		}: IGetEventsArgs = {},
+		{ parser = new DateEventParser() }: IAddOnArgs = {}
+	) {
 		const res = await this.instance.get<
 			any,
 			AxiosResponse<IGetResponse>,
@@ -80,6 +61,7 @@ export class WebCalendarClient {
 				singleEvents: false, // Whether to expand recurring events into instances and only return single one-off events and instances of recurring events, but not the underlying recurring events themselves. Optional. The default is False.
 			},
 		});
+		
 		return parser.parseEvents(res.data.items);
 	}
 
@@ -103,71 +85,15 @@ export class WebCalendarClient {
 		return res;
 	}
 
-	/**
-	 *
-	 * @param events
-	 * @throws {AxiosError}
-	 * @returns
-	 */
-	async updateMultipleEvents<
-		T extends ICalendarEvent<IDateEventData | IDateTimeEventData> = z.infer<
-			typeof calendarRowDataSchema
-		>
-	>(events: T[]) {
-		const promises = events.map((event) => this.updateEvent(event));
-		return Promise.all(promises);
+	async createEvent (event:any){
+		return this.instance.post("https://www.googleapis.com/calendar/v3/calendars/primary/events", event)
 	}
-}
 
-type IParsedGetResponse = {
-	dateEvents: z.infer<typeof dateEventSchema>[];
-	dateTimeEvents: z.infer<typeof dateTimeEventSchema>[];
-};
 
-interface GoogleEventParser<TReturnType> {
-	parseEvents(data: calendar_v3.Schema$Event[]): TReturnType;
-}
-
-export class DateEventParser implements GoogleEventParser<IParsedGetResponse> {
-	/**
-	 *
-	 * @param data
-	 * @param unpack
-	 * @throws {ZodError}
-	 * @returns
-	 */
-	public parseEvents(data: calendar_v3.Schema$Event[]) {
-		// https://stackoverflow.com/questions/55149221/class-with-static-methods-vs-exported-functions-typescript
-		const eventContainer: IParsedGetResponse = {
-			dateEvents: [],
-			dateTimeEvents: [],
-		};
-		if (data.length === 0 || data === undefined) return eventContainer;
-
-		data.forEach((event) => {
-			if (event.start?.date !== null && event.start?.date !== undefined) {
-				eventContainer.dateEvents.push(
-					dateEventRowDataSchema.parse(event)
-				); // if there is artificial data injection where an event artificially contains changeType other than "none", it will cause unexpected behavior. be careful with test data generation and make sure it follows Schema$Event interface. can parse event as a regular date event first then pipe over to daterow object to fix this.
-			} else if (
-				event.start?.dateTime !== null &&
-				event.start?.dateTime !== undefined
-			) {
-				eventContainer.dateTimeEvents.push(
-					dateTimeEventRowDataSchema.parse(event)
-				);
-			} else {
-				console.warn(
-					`Event ${event.summary} has no start date or start date time`
-				);
-			}
-		});
-		return eventContainer;
-	}
 }
 
 type IAddOnArgs = {
-	parser: GoogleEventParser<IParsedGetResponse>;
+	parser?: IGoogleEventParser<IParsedGetResponse>;
 };
 
 

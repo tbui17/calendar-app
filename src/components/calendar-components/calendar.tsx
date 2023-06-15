@@ -8,94 +8,116 @@ import {
 	CellValueChangedEvent,
 	ColDef,
 	ICellRendererParams,
+	ValueParserParams,
 } from "ag-grid-community";
-import { ICalendarRowDataSchema, calendarRowDataSchema } from "@/types/row-data-types";
-import React, {useRef, useState} from "react";
+import {
+	ICalendarRowDataSchema,
+	calendarRowDataSchema,
+} from "@/types/row-data-types";
+import React, { useEffect, useRef, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
-import { signOut, useSession } from "next-auth/react";
 
 import { AgGridReact } from "ag-grid-react";
-import DateCellEditor from "./date-editor";
 import { DatePicker } from "./date-picker";
-import { Session } from "next-auth";
-import { WebCalendarClient } from "@/lib/web-calendar-client";
+import { IOutboundEventSchema } from "@/types/event-types";
 import { convertDate } from "@/lib/convert-date";
-import { isAxiosError } from "axios";
+import { filterAndTransformDateAndDateEvents } from "@/lib/filter-date-or-datevent";
+import { filterEventMutations } from "@/lib/filter-event-mutations";
+import pickerRendererMUI from "./picker-renderer-mui";
 import { useDateRange } from "@/hooks/useDateRange";
 import { useGetCalendar } from "@/hooks/useGetCalendar";
+import { usePatchCalendar } from "@/hooks/usePatchCalendar";
+import { useQueryClient } from "@tanstack/react-query";
 import { useToastEffect } from "@/hooks/useToastEffect";
-import { z } from "zod";
 
 export const CalendarApp = () => {
 	// hooks
+	const { endDate, setEndDate, setStartDate, startDate } = useDateRange();
 	const {
-		endDate,
-		setEndDate,
-		setStartDate,
-		startDate,
-	} = useDateRange();
-	const { data, isFetching, refetch, error } = useGetCalendar({
+		data: dataFromGetCalendar,
+		isFetching,
+		refetch,
+		error,
+	} = useGetCalendar({
 		startDate: new Date(startDate),
 		endDate: new Date(endDate),
 	});
 	const gridRef = useRef<AgGridReact<ICalendarRowDataSchema>>(null);
-	const session = useSession({ required: true });
 	const [hasDataFetched, setHasDataFetched] = useState(false);
+	const [isPatching, setIsPatching] = useState(false); // temp
+	const updateMutation = usePatchCalendar();
+	const queryClient = useQueryClient();
+	
+	useToastEffect({
+		condition: !!dataFromGetCalendar && dataFromGetCalendar.length === 0 && !isFetching, 
+		toastMessage: "No events found",
+		dependencies: [dataFromGetCalendar, isFetching],
+	})
 
 	useToastEffect({
-		condition: isFetching,
+		condition: !isFetching && !isPatching && !!dataFromGetCalendar?.length,
 		toastMessage: "Events retrieved",
-		dependencies: [data],
+		dependencies: [dataFromGetCalendar, isFetching],
 	});
 
 	// handlers
 
+	function handleCellChange(
+		e: CellValueChangedEvent<ICalendarRowDataSchema>
+	) {
+		
+		if (e.data?.changeType === "none") {
+			e.data.changeType = "updated";
+		}
+		
+	}
+
 	const handleFetchClick = async () => {
-		refetch();
+		await refetch();
 		setHasDataFetched(true);
 	};
-	
-
 
 	const handleSendClick = async () => {
-		console.error("Not implemented")
-		// const result = []
-		// gridRef.current?.api.forEachNode((node) => {return node})
-		// const patchEventData: ICalendarRowData[]|undefined = data?.filter((row) => {
-		// 	return row.changeType === "updated"
-		// })
-		
-		// if (patchEventData === undefined || patchEventData.length === 0) {
-		// 	toast("No events to send");
-		// 	return;
-		// }
+		if (!dataFromGetCalendar) {
+			toast("No data");
+			return;
+		}
 
-		// const res = await (async () => {
-		// 	const token = (session.data as Session & {access_token:string}).access_token
-			
-		// 	return new WebCalendarClient(token).updateMultipleEvents(
-		// 		patchEventData
-		// 	);
-			
-		// });
-		// let success: boolean = true;
+		const filterEventMutationsResult = filterEventMutations(
+			dataFromGetCalendar,
+			"updated"
+		);
+		if (filterEventMutationsResult.length === 0) {
+			toast("No modified events.");
+			return;
+		}
+
+		// console.log(filterEventMutationsResult);
 		
-		// if (res) {
+		const filteredResults = filterAndTransformDateAndDateEvents(
+			filterEventMutationsResult
+		);
+		// console.log(filteredResults)
+		const eventsCombined: IOutboundEventSchema[] = [
+			...filteredResults.dateEvents,
+			...filteredResults.dateTimeEvents,
+		];
+		
+		// console.log(eventsCombined)
+		const promises = eventsCombined.map((item) => {
+			return updateMutation.mutateAsync(item);
+		});
+		await Promise.all(promises).catch()
+		queryClient.invalidateQueries({
+			queryKey: ["events"],
 			
-		// 	res.forEach((result) => {
-		// 		if (!result) {
-		// 			success = false;
-		// 		}
-		// 	});
-		// 	if (success) {
-		// 		toast(`Successfully updated ${res.length} events`);
-		// 	} else {
-		// 		toast("There was an error updating the events");
-		// 	}
-		// } else {
-		// 	toast("No response");
-		// 	console.error("No response");
-		// }
+
+		})
+		setIsPatching(true);
+		// await handleFetchClick(); // TODO: redundant?
+		toast("Success");
+		setIsPatching(false);
+
 		
 	};
 
@@ -121,55 +143,55 @@ export const CalendarApp = () => {
 			field: "start",
 			sortable: true,
 			filter: "agDateColumnFilter",
-			cellRenderer: (params: ICellRendererParams<ICalendarRowDataSchema>) => {
-				return convertDate(params)
+			cellRenderer: (
+				params: ICellRendererParams<ICalendarRowDataSchema>
+			) => {
+				return convertDate(params);
 			},
 			editable: true,
-			cellEditor: DateCellEditor, // TODO: make tab move to next field in input instead of next cell
+			cellEditor: pickerRendererMUI,
 			resizable: true,
 		},
 		{
 			field: "end",
 			sortable: true,
 			filter: "agDateTimeColumnFilter",
-			cellRenderer: (params: ICellRendererParams<ICalendarRowDataSchema>) =>
-				convertDate(params),
+			cellRenderer: (
+				params: ICellRendererParams<ICalendarRowDataSchema>
+			) => convertDate(params),
 			editable: true,
-			cellEditor: "dateTimePicker", //DateCellEditor,
+			cellEditor: pickerRendererMUI,
 			resizable: true,
 		},
 	];
 
 	// const [rowData, setRowData] = useState<ITransformedEvent[]>(defaultData);
-	const [columnDefs, setColumnDefs] = useState<ColDef[]>(defaultColumnDefs);
+	const [columnDefs] = useState<ColDef[]>(defaultColumnDefs);
 
 	// rendering
 
-	if (error) { // ??? empty error is possible?
-		if (isAxiosError(error)) {
-			if (error.response?.status === 401) {
-				console.error("Expired token");
-				return (
-					
-					<>
-					<p>Your access token expired. Sign in again.</p>
-					<button onClick={()=>{signOut()}}>Sign out</button>
-					</>
-
-				)
-				
-			} else {
-				return (
-					<>
-						<div>An error has occurred. </div>
-						<div>{error.message}</div>
-					</>
-				);
-			}
-		} else {
-			return <div>Something went wrong</div>;
-		}
-	}
+	// if (error) { //TODO: find out if this is redundant, mutateAsync does not handle error for you. errorboundary already set up. 
+	// 	// ??? empty error is possible?
+	// 	if (isAxiosError(error)) {
+	// 		if (error.response?.status === 401) {
+	// 			console.error("Expired token");
+	// 			return (
+	// 				<>
+	// 					<ErrorAccessTokenExpired />
+	// 				</>
+	// 			);
+	// 		} else {
+	// 			return (
+	// 				<>
+	// 					<div>An error has occurred. </div>
+	// 					<div>{error.message}</div>
+	// 				</>
+	// 			);
+	// 		}
+	// 	} else {
+	// 		return <div>Something went wrong</div>;
+	// 	}
+	// }
 
 	return (
 		<>
@@ -199,7 +221,7 @@ export const CalendarApp = () => {
 						/>
 					</div>
 					<div className="pl-96">
-						<p>{isFetching && "Fetching data..."}</p>
+						<p>{(isFetching || isPatching) && "Loading..."}</p>
 					</div>
 				</div>
 				<div className="flex">
@@ -207,7 +229,7 @@ export const CalendarApp = () => {
 						<button
 							onClick={handleFetchClick}
 							type="button"
-							className="mb-2 mr-2 rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+							className={`mb-2 mr-2 rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800`}
 						>
 							Fetch Data
 						</button>
@@ -234,14 +256,10 @@ export const CalendarApp = () => {
 				style={{ height: 1000 }}
 			>
 				<AgGridReact
-					
-					rowData={[...(data?.dateEvents ?? []), ...(data?.dateTimeEvents ?? [])]}
+					rowData={dataFromGetCalendar || []}
 					columnDefs={columnDefs}
 					ref={gridRef}
-					onCellValueChanged={(e: CellValueChangedEvent<ICalendarRowDataSchema>) => { // new events will have "created" automatically on creation. deleted events will be hidden 
-						e.node.data?.changeType === "none" ?? e.node.setDataValue("changeType", "updated")
-					}}
-					
+					onCellValueChanged={(e) => handleCellChange(e)}
 					onGridSizeChanged={(params) =>
 						params.api.sizeColumnsToFit()
 					}

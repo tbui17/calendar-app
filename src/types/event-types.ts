@@ -4,12 +4,20 @@ import { O } from "ts-toolbelt";
 import { calendar_v3 } from "googleapis";
 import { z } from "zod";
 
+export const dateString = z.string().regex(yyyymmddRegex);
+export const dateTimeString = z.string()
+
+export const dateField = z.object({ date: z.string().regex(yyyymmddRegex) })
+export const dateTimeField = z.object({ dateTime: z.string() })
+
 const stringSchemaCoercedFromUndefinedOrNull = z
 	.union([z.undefined(), z.null(), z.string()])
 	.transform((val) => {
 		return val === undefined || val === null ? "" : val;
 	})
 	.pipe(z.string());
+
+
 
 export const baseEventSchema = z.object({
 	id: z.string(),
@@ -19,22 +27,26 @@ export const baseEventSchema = z.object({
 
 // dates event schema
 export const preDateEventSchema = baseEventSchema.extend({
-	start: z.object({ date: z.string().regex(yyyymmddRegex) }),
-	end: z.object({ date: z.string().regex(yyyymmddRegex) }),
+	start: dateField,
+	end: dateField
 });
 
 export const dateEventSchema = preDateEventSchema.extend({ // adds the discriminant field to later make discriminated union
 	dateType: z.literal("date").default("date"),
+	start: dateString,
+	end: dateString,
 });
 
 // datetime event schema
 export const preDateTimeEventSchema = baseEventSchema.extend({ //TODO: add timeZone field to datetime
-	start: z.object({ dateTime: z.string().regex(isoStringRegex) }),
-	end: z.object({ dateTime: z.string().regex(isoStringRegex) }),
+	start: dateTimeField,
+	end: dateTimeField
 });
 
 export const dateTimeEventSchema = preDateTimeEventSchema.extend({
 	dateType: z.literal("dateTime").default("dateTime"),
+	start: dateTimeString,
+	end: dateTimeString,
 });
 
 export const preCalendarEventSchema = z.union([
@@ -46,6 +58,10 @@ export const calendarEventSchema = z.discriminatedUnion("dateType", [
 	dateEventSchema,
 	dateTimeEventSchema,
 ]);
+
+export type IOutboundEventSchema = z.infer<typeof preCalendarEventSchema>;
+
+
 
 // export type INextResponse<T> = {
 // 	result: T;
