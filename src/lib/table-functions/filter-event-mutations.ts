@@ -1,4 +1,4 @@
-import { calendarRowDataSchema, changeTypeSchema } from "@/types/row-data-types";
+import { ICalendarRowDataSchema, calendarRowDataSchema, changeTypeSchema } from "@/types/row-data-types";
 
 import { z } from "zod";
 

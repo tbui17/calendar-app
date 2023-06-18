@@ -36,6 +36,7 @@ export type IDateEventRowDataSchema = z.infer<typeof dateEventRowDataSchema>;
 
 export type IDateTimeEventRowDataSchema = z.infer<typeof dateTimeEventRowDataSchema>;
 export type ICalendarRowDataSchema = IDateEventRowDataSchema | IDateTimeEventRowDataSchema;
+export type IChangeTypeSchema = z.infer<typeof changeTypeSchema>;
 
 // /**
 //  * Generates discriminated union types from an object type and a list of strings.

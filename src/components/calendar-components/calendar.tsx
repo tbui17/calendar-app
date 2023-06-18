@@ -8,23 +8,19 @@ import {
 	CellValueChangedEvent,
 	ColDef,
 	ICellRendererParams,
-	ValueParserParams,
 } from "ag-grid-community";
-import {
-	ICalendarRowDataSchema,
-	calendarRowDataSchema,
-} from "@/types/row-data-types";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 
 import { AgGridReact } from "ag-grid-react";
 import { DatePicker } from "./date-picker";
 import ErrorAccessTokenExpired from "../error-access-token-expired";
-import { IOutboundEventSchema } from "@/types/event-types";
+import {
+	ICalendarRowDataSchema,
+} from "@/types/row-data-types";
 import PickerRendererMUI from "./picker-renderer-mui";
 import { convertDate } from "@/lib/convert-date";
-import { filterAndTransformDateAndDateEvents } from "@/lib/filter-date-or-datevent";
-import { filterEventMutations } from "@/lib/filter-event-mutations";
+import { filterPostPatchDelete } from "@/lib/table-functions/filterPostPatchDelete";
 import { isAxiosError } from "axios";
 import { useDateRange } from "@/hooks/useDateRange";
 import { useGetCalendar } from "@/hooks/useGetCalendar";
@@ -86,40 +82,46 @@ export const CalendarApp = () => {
 			return;
 		}
 
-		const filterEventMutationsResult = filterEventMutations(
-			dataFromGetCalendar,
-			"updated"
-		);
-		if (filterEventMutationsResult.length === 0) {
-			toast("No modified events.");
-			return;
+		// const filterEventMutationsResult = filterEventMutationsSingle(
+		// 	dataFromGetCalendar,
+		// 	"updated"
+		// );
+		// if (filterEventMutationsResult.length === 0) {
+		// 	toast("No modified events.");
+		// 	return;
+		// }
+		if (!gridRef.current){
+			console.error("No reference")
+			return
 		}
+		const res = filterPostPatchDelete(gridRef.current)
+		console.log(res)
 
-		// console.log(filterEventMutationsResult);
+		// // console.log(filterEventMutationsResult);
 		
-		const filteredResults = filterAndTransformDateAndDateEvents(
-			filterEventMutationsResult
-		);
-		// console.log(filteredResults)
-		const eventsCombined: IOutboundEventSchema[] = [
-			...filteredResults.dateEvents,
-			...filteredResults.dateTimeEvents,
-		];
+		// const filteredResults = filterAndTransformDateAndDateEvents(
+		// 	filterEventMutationsResult
+		// );
+		// // console.log(filteredResults)
+		// const eventsCombined: IOutboundEventSchema[] = [
+		// 	...filteredResults.dateEvents,
+		// 	...filteredResults.dateTimeEvents,
+		// ];
 		
-		// console.log(eventsCombined)
-		const promises = eventsCombined.map((item) => {
-			return updateMutation.mutateAsync(item);
-		});
-		await Promise.all(promises)
-		queryClient.invalidateQueries({
-			queryKey: ["events"],
+		// // console.log(eventsCombined)
+		// const promises = eventsCombined.map((item) => {
+		// 	return updateMutation.mutateAsync(item);
+		// });
+		// await Promise.all(promises)
+		// queryClient.invalidateQueries({
+		// 	queryKey: ["events"],
 			
 
-		})
-		setIsPatching(true);
-		// await handleFetchClick(); // TODO: redundant?
-		toast("Success");
-		setIsPatching(false);
+		// })
+		// setIsPatching(true);
+		// // await handleFetchClick(); // TODO: redundant?
+		// toast("Success");
+		// setIsPatching(false);
 
 		
 	};
@@ -168,7 +170,7 @@ export const CalendarApp = () => {
 		},
 	];
 
-	// const [rowData, setRowData] = useState<ITransformedEvent[]>(defaultData);
+	
 	const [columnDefs] = useState<ColDef[]>(defaultColumnDefs);
 
 	// rendering

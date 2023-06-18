@@ -1,13 +1,9 @@
-import { ICalendarEventContainer, IOutboundEventSchema } from "@/types/event-types";
-
 import { ICalendarRowDataSchema } from "@/types/row-data-types";
+import { IOutboundEventContainer } from "@/types/event-types";
 import moment from "moment";
 
-export const filterAndTransformDateAndDateEvents = (events: ICalendarRowDataSchema[]) => {
-	const container: {
-        dateEvents: IOutboundEventSchema[],
-        dateTimeEvents: IOutboundEventSchema[]
-    } = {
+export const filterAndTransformDateAndDatetimeEvents = (events: ICalendarRowDataSchema[]) => {
+	const container: IOutboundEventContainer = {
 		dateEvents: [],
 		dateTimeEvents: [],
 	};

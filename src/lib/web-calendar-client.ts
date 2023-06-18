@@ -85,7 +85,7 @@ export class WebCalendarClient {
 		return res;
 	}
 
-	async createEvent (event:any){
+	async createEvent<T extends IValidPatchProps>(event:any){
 		return this.instance.post("https://www.googleapis.com/calendar/v3/calendars/primary/events", event)
 	}
 

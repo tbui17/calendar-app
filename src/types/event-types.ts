@@ -110,19 +110,6 @@ export type ICalendarEvent<T extends IDateEventData | IDateTimeEventData> = {
 export type IDateCalendarEvent = ICalendarEvent<IDateEventData>;
 export type IDateTimeCalendarEvent = ICalendarEvent<IDateTimeEventData>;
 
-export function isDateCalendarEvent(
-	event:
-		| ICalendarEvent<IDateEventData | IDateTimeEventData>
-		| calendar_v3.Schema$Event
-): event is IDateCalendarEvent {
-	return (
-		(event.start as IDate).date !== undefined &&
-		(event.end as IDate).date !== undefined &&
-		event.id !== undefined &&
-		event.summary !== undefined &&
-		event.description !== undefined
-	);
-}
 
 export function isDateTimeCalendarEvent(
 	event: ICalendarEvent<any>
@@ -141,10 +128,37 @@ export function isValidDate(date: string): boolean {
 	return date.match(/^\d{4}-\d{2}-\d{2}$/) !== null;
 }
 
-export type ICalendarEventContainer = {
-	dateEvents: IDateCalendarEvent[];
-	dateTimeEvents: IDateTimeCalendarEvent[];
-};
+
+
+export type IOutboundEventContainer = {
+	dateEvents: IOutboundEventSchema[],
+	dateTimeEvents: IOutboundEventSchema[]
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // https://developers.google.com/calendar/api/v3/reference/events/list
 export type GetListArgs = {

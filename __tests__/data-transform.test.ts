@@ -1,7 +1,7 @@
 import {describe, expect, it} from "vitest"
 
 import { ICalendarRowDataSchema } from "@/types/row-data-types"
-import { filterAndTransformDateAndDateEvents } from "@/lib/filter-date-or-datevent"
+import { filterAndTransformDateAndDatetimeEvents } from "@/lib/table-functions/filter-and-transform-date-and-datetime-events"
 
 describe("filterAndTransformDateAndDateEvents", () => {
     
@@ -26,7 +26,7 @@ describe("filterAndTransformDateAndDateEvents", () => {
             end: { date: "2023-06-26" },
           }
         
-      const res = filterAndTransformDateAndDateEvents(testData).dateEvents[0]
+      const res = filterAndTransformDateAndDatetimeEvents(testData).dateEvents[0]
       console.log(res)
       expect(res).toEqual(expectedResult)
     })
