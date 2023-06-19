@@ -7,10 +7,26 @@ import { z } from "zod";
 export const dateString = z.string().regex(yyyymmddRegex);
 export const dateTimeString = z.string()
 
+export const dateTypeDateStringLiteralSchema = z.literal("date").default("date")
+export const dateTypeDateTimeStringLiteralSchema = z.literal("dateTime").default("dateTime")
+
 export const dateField = z.object({ date: z.string().regex(yyyymmddRegex) })
 export const dateTimeField = z.object({ dateTime: z.string() })
 
-const stringSchemaCoercedFromUndefinedOrNull = z
+
+export const googleDateEventKeyPropsSchema = z.object({
+	start: dateField,
+	end: dateField,
+})
+
+export const googleDateTimeEventKeyPropsSchema = z.object({
+	start: dateTimeField,
+	end: dateTimeField,
+})
+
+
+
+export const stringCoercedFromUndefinedOrNullSchema = z
 	.union([z.undefined(), z.null(), z.string()])
 	.transform((val) => {
 		return val === undefined || val === null ? "" : val;
@@ -22,14 +38,11 @@ const stringSchemaCoercedFromUndefinedOrNull = z
 export const baseEventSchema = z.object({
 	id: z.string(),
 	summary: z.string().default(""),
-	description: stringSchemaCoercedFromUndefinedOrNull, // kept as example. this is not necessary. z.string().default("") is enough. there is no null in google event data.
+	description: stringCoercedFromUndefinedOrNullSchema, // kept as example. this is not necessary. z.string().default("") is enough. there is no null in google event data.
 });
 
-// dates event schema
-export const preDateEventSchema = baseEventSchema.extend({
-	start: dateField,
-	end: dateField
-});
+
+export const preDateEventSchema = baseEventSchema.merge(googleDateEventKeyPropsSchema)
 
 export const dateEventSchema = preDateEventSchema.extend({ // adds the discriminant field to later make discriminated union
 	dateType: z.literal("date").default("date"),
@@ -37,11 +50,8 @@ export const dateEventSchema = preDateEventSchema.extend({ // adds the discrimin
 	end: dateString,
 });
 
-// datetime event schema
-export const preDateTimeEventSchema = baseEventSchema.extend({ //TODO: add timeZone field to datetime
-	start: dateTimeField,
-	end: dateTimeField
-});
+
+export const preDateTimeEventSchema = baseEventSchema.merge(googleDateTimeEventKeyPropsSchema)
 
 export const dateTimeEventSchema = preDateTimeEventSchema.extend({
 	dateType: z.literal("dateTime").default("dateTime"),

@@ -1,8 +1,9 @@
 import {
-	dateEventSchema,
-	dateTimeEventSchema,
+	baseEventSchema,
+	dateTypeDateStringLiteralSchema,
 } from "./event-types";
 
+import { dateTypeDateTimeStringLiteralSchema } from './event-types';
 import { z } from "zod";
 
 export const changeTypeSchema = z.union([
@@ -15,17 +16,20 @@ export const changeTypeSchema = z.union([
 
 
 
-export const dateEventRowDataSchema = dateEventSchema.extend({ // changeType field tracks what data is changed and whether to send POST / PATCH / DELETE request to Google API server
+export const dateEventRowDataSchema = baseEventSchema.extend({ // changeType field tracks what data is changed and whether to send POST / PATCH / DELETE request to Google API server
 	changeType: changeTypeSchema.default("none"),
 	start: z.coerce.date(),
 	end: z.coerce.date(),
+	dateType: dateTypeDateStringLiteralSchema,
+	
 	
 })
 
-export const dateTimeEventRowDataSchema = dateTimeEventSchema.extend({
+export const dateTimeEventRowDataSchema = baseEventSchema.extend({
 	changeType: changeTypeSchema.default("none"),
 	start: z.coerce.date(),
 	end: z.coerce.date(),
+	dateType: dateTypeDateTimeStringLiteralSchema
 });
 
 export const calendarRowDataSchema = z.union([dateEventRowDataSchema, dateTimeEventRowDataSchema]);
