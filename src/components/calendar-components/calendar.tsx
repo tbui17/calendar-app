@@ -15,9 +15,7 @@ import { ToastContainer, toast } from "react-toastify";
 import { AgGridReact } from "ag-grid-react";
 import { DatePicker } from "./date-picker";
 import ErrorAccessTokenExpired from "../error-access-token-expired";
-import {
-	ICalendarRowDataSchema,
-} from "@/types/row-data-types";
+import { ICalendarRowDataSchema } from "@/types/row-data-types";
 import PickerRendererMUI from "./picker-renderer-mui";
 import { convertDate } from "@/lib/convert-date";
 import { filterPostPatchDelete } from "@/lib/table-functions/filterPostPatchDelete";
@@ -46,12 +44,15 @@ export const CalendarApp = () => {
 	const [isPatching, setIsPatching] = useState(false); // temp
 	const updateMutation = usePatchCalendar();
 	const queryClient = useQueryClient();
-	
+
 	useToastEffect({
-		condition: !!dataFromGetCalendar && dataFromGetCalendar.length === 0 && !isFetching, 
+		condition:
+			!!dataFromGetCalendar &&
+			dataFromGetCalendar.length === 0 &&
+			!isFetching,
 		toastMessage: "No events found",
 		dependencies: [dataFromGetCalendar, isFetching],
-	})
+	});
 
 	useToastEffect({
 		condition: !isFetching && !isPatching && !!dataFromGetCalendar?.length,
@@ -64,11 +65,9 @@ export const CalendarApp = () => {
 	function handleCellChange(
 		e: CellValueChangedEvent<ICalendarRowDataSchema>
 	) {
-		
 		if (e.data?.changeType === "none") {
 			e.data.changeType = "updated";
 		}
-		
 	}
 
 	const handleFetchClick = async () => {
@@ -90,15 +89,15 @@ export const CalendarApp = () => {
 		// 	toast("No modified events.");
 		// 	return;
 		// }
-		if (!gridRef.current){
-			console.error("No reference")
-			return
+		if (!gridRef.current) {
+			console.debug("No reference");
+			return;
 		}
-		const res = filterPostPatchDelete(gridRef.current)
-		console.log(res)
+		const res = filterPostPatchDelete(gridRef.current);
+		console.debug(res);
 
 		// // console.log(filterEventMutationsResult);
-		
+
 		// const filteredResults = filterAndTransformDateAndDateEvents(
 		// 	filterEventMutationsResult
 		// );
@@ -107,7 +106,7 @@ export const CalendarApp = () => {
 		// 	...filteredResults.dateEvents,
 		// 	...filteredResults.dateTimeEvents,
 		// ];
-		
+
 		// // console.log(eventsCombined)
 		// const promises = eventsCombined.map((item) => {
 		// 	return updateMutation.mutateAsync(item);
@@ -115,15 +114,12 @@ export const CalendarApp = () => {
 		// await Promise.all(promises)
 		// queryClient.invalidateQueries({
 		// 	queryKey: ["events"],
-			
 
 		// })
 		// setIsPatching(true);
 		// // await handleFetchClick(); // TODO: redundant?
 		// toast("Success");
 		// setIsPatching(false);
-
-		
 	};
 
 	// table configs
@@ -170,7 +166,6 @@ export const CalendarApp = () => {
 		},
 	];
 
-	
 	const [columnDefs] = useState<ColDef[]>(defaultColumnDefs);
 
 	// rendering
@@ -178,26 +173,27 @@ export const CalendarApp = () => {
 	if (isError) {
 		// Check if error is an Axios error
 		if (isAxiosError(error)) {
-		  if (error.response?.status === 401) {
-			console.error("Expired token");
-			return (
-			  <>
-				<ErrorAccessTokenExpired />
-			  </>
-			);
-		  }
+			if (error.response?.status === 401) {
+				console.error("Expired token");
+				return (
+					<>
+						<ErrorAccessTokenExpired />
+					</>
+				);
+			}
 		} else if (error instanceof Error) {
-		  toast("An error occurred.");
-		  console.error(error);
+			toast("An error occurred.");
+			console.error(error);
 		}
-	  }
+	}
 
 	return (
 		<>
-			<div>
-				<div className="pb-4">
-					<p>Choose the date range to fetch calendar data.</p>
-				</div>
+			<p className="mb-4">
+				Choose the date range to fetch calendar data.
+			</p>
+
+			<div className="flex">
 				<div className="flex">
 					<div className="pb-5 pr-9">
 						<DatePicker
@@ -219,34 +215,34 @@ export const CalendarApp = () => {
 							labelName="to"
 						/>
 					</div>
-					<div className="pl-96">
-						<p>{(isFetching || isPatching) && "Loading..."}</p>
-					</div>
 				</div>
-				<div className="flex">
-					<div className="pr-3">
-						<button
-							onClick={handleFetchClick}
-							type="button"
-							className={`mb-2 mr-2 rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800`}
-						>
-							Fetch Data
-						</button>
-					</div>
-
+				<div className="fixed left-1/2 transform translate-x-1/2">
+					{/* <p>{(isFetching || isPatching) && "Loading..."}</p> */}
+					<div><span>test</span></div>
+				</div>
+				
+			</div>
+			<div className="flex">
+				<div className="pr-3">
 					<button
-						onClick={handleSendClick}
+						onClick={handleFetchClick}
 						type="button"
-						className={`mb-2 mr-2 rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 ${
-							hasDataFetched
-								? ""
-								: "cursor-not-allowed opacity-50"
-						}`}
-						disabled={!hasDataFetched}
+						className={`mb-2 mr-2 rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800`}
 					>
-						Send Data
+						Fetch Data
 					</button>
 				</div>
+
+				<button
+					onClick={handleSendClick}
+					type="button"
+					className={`mb-2 mr-2 rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 ${
+						hasDataFetched ? "" : "cursor-not-allowed opacity-50"
+					}`}
+					disabled={!hasDataFetched}
+				>
+					Send Data
+				</button>
 			</div>
 
 			<div

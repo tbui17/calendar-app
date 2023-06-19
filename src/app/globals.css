@@ -35,3 +35,16 @@ body {
     rgb(var(--background-start-rgb));
 }
 
+.vh-center {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.fixed-h-center {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+}

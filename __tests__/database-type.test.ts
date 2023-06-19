@@ -1,4 +1,4 @@
-import { DatabaseError, DatabaseRetrieveNoResultError } from "@/backend/modules/errors"
+import { DatabaseError, DatabaseRetrieveNoResultError } from "@/backend/lib/errors"
 import {describe, expect, it} from "vitest"
 
 describe("database type tests", () => {
