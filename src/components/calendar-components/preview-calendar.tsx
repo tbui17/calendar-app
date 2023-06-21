@@ -187,7 +187,7 @@ export const PreviewCalendarApp = () => {
 						<DatePicker
 							id="startDate"
 							value={startDate}
-							onChange={handleStartDate}
+							onBlur={handleStartDate}
 							labelName="from"
 						/>
 					</div>
@@ -195,7 +195,7 @@ export const PreviewCalendarApp = () => {
 						<DatePicker
 							id="endDate"
 							value={endDate}
-							onChange={handleEndDate}
+							onBlur={handleEndDate}
 							labelName="to"
 						/>
 					</div>

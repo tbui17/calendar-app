@@ -1,42 +1,78 @@
-import { oneMonthAheadYYYYMMDD, oneMonthBehindYYYYMMDD } from "@/lib/date-functions";
+import { ChangeEvent, useState } from "react";
+import { MAX_DATE, MIN_DATE } from "@/configs/date-picker-time-limit-configs";
+import {
+	oneMonthAheadYYYYMMDD,
+	oneMonthBehindYYYYMMDD,
+} from "@/lib/date-functions";
 
-import { useState } from "react";
+export const useDateRange = (
+	initialStartDate: string = oneMonthBehindYYYYMMDD(),
+	initialEndDate: string = oneMonthAheadYYYYMMDD()
+) => {
+	const [startDate, setStartDate] = useState(initialStartDate);
+	const [endDate, setEndDate] = useState(initialEndDate);
 
-export const useDateRange = (initialStartDate: string = oneMonthBehindYYYYMMDD(), initialEndDate: string = oneMonthAheadYYYYMMDD()) => {
-  const [startDate, setStartDate] = useState(initialStartDate);
-  const [endDate, setEndDate] = useState(initialEndDate);
+	const setStartDateValidated = (e: ChangeEvent<HTMLInputElement>) => {
+    console.log(e)
+		// const end = new Date(endDate);
+		// const start = new Date(value);
+		if (startDate > endDate) {
+			// return new Error("Start date cannot be after end date");
+			setStartDate(endDate);
+			return;
+		}
+		if (startDate < MIN_DATE) {
+			setStartDate(MIN_DATE);
+			return;
+		}
+		if (startDate > MAX_DATE) {
+			setStartDate(MAX_DATE);
+			return;
+		}
+		setStartDate(e.target.value);
+	};
 
+	const setEndDateValidated = (e: ChangeEvent<HTMLInputElement>) => {
+		if (endDate < startDate) {
+			// return new Error("End date cannot be before start date");
+			setEndDate(startDate);
+		}
+		if (endDate > MAX_DATE) {
+			// return new Error(`End date cannot be after ${MAX_DATE}`);
+			setEndDate(MAX_DATE);
+		}
+		if (endDate < MIN_DATE) {
+			// return new Error(`End date cannot be before ${MIN_DATE}`);
+			setEndDate(MIN_DATE);
+		}
+		setEndDate(e.target.value);
+	};
 
-  const validateStartDate = (value: string) => {
-    const end = new Date(endDate);
-    const start = new Date(value);
-    if (start > end) {
-      return new Error("Start date cannot be after end date");
-    }
-    if (start < new Date("2000-01-01")) {
-      return new Error("Start date cannot be before 2000-01-01");
-    }
-    return true;
-  };
-  
-  const validateEndDate = (value: string) => {
-    const start = new Date(startDate);
-    const end = new Date(value);
-    if (end < start) {
-      return new Error("End date cannot be before start date");
-    }
-    if (end > new Date("2100-01-01")) {
-      return new Error("End date cannot be after 2100-01-01");
-    }
-    return true;
-  };
+	// const validateDates = () => {
+	//   const start = new Date(startDate);
+	//   const end = new Date(endDate);
+	//   if (start > end) {
+	//     return new Error("Start date cannot be after end date");
+	//   }
+	//   if (start < new Date(MIN_DATE)) {
+	//     return new Error(`Start date cannot be before ${MIN_DATE}`);
+	//   }
+	//   if (end < start) {
+	//     return new Error("End date cannot be before start date");
+	//   }
+	//   if (end > new Date(MAX_DATE)) {
+	//     return new Error(`End date cannot be after ${MAX_DATE}`);
+	//   }
+	//   return true;
+	// };
 
-  return {
-    startDate,
-    endDate,
-    setStartDate,
-    setEndDate,
-    validateStartDate,
-    validateEndDate,
-  };
+	return {
+		startDate,
+		endDate,
+		// setStartDate,
+		// setEndDate,
+		// validateDates,
+		setStartDateValidated,
+		setEndDateValidated,
+	};
 };

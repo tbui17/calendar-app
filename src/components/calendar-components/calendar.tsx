@@ -9,7 +9,7 @@ import {
 	ColDef,
 	ICellRendererParams,
 } from "ag-grid-community";
-import React, { useRef, useState } from "react";
+import React, { FormEvent, useRef, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 
 import { AgGridReact } from "ag-grid-react";
@@ -28,7 +28,8 @@ import { useToastEffect } from "@/hooks/useToastEffect";
 
 export const CalendarApp = () => {
 	// hooks
-	const { endDate, setEndDate, setStartDate, startDate } = useDateRange();
+	const { endDate, setStartDateValidated, startDate, setEndDateValidated } =
+		useDateRange();
 	const {
 		data: dataFromGetCalendar,
 		isFetching,
@@ -45,20 +46,26 @@ export const CalendarApp = () => {
 	const updateMutation = usePatchCalendar();
 	const queryClient = useQueryClient();
 
-	useToastEffect({
-		condition:
-			!!dataFromGetCalendar &&
-			dataFromGetCalendar.length === 0 &&
-			!isFetching,
-		toastMessage: "No events found",
-		dependencies: [dataFromGetCalendar, isFetching],
-	});
+	// if(!!dataFromGetCalendar &&
+	// 	dataFromGetCalendar.length === 0 &&
+	// 	!isFetching){
 
-	useToastEffect({
-		condition: !isFetching && !isPatching && !!dataFromGetCalendar?.length,
-		toastMessage: "Events retrieved",
-		dependencies: [dataFromGetCalendar, isFetching],
-	});
+	// 	}
+
+	// useToastEffect({
+	// 	condition:
+	// 		!!dataFromGetCalendar &&
+	// 		dataFromGetCalendar.length === 0 &&
+	// 		!isFetching,
+	// 	toastMessage: "No events found",
+	// 	dependencies: [dataFromGetCalendar, isFetching],
+	// });
+
+	// useToastEffect({
+	// 	condition: !isFetching && !isPatching && !!dataFromGetCalendar?.length,
+	// 	toastMessage: "Events retrieved",
+	// 	dependencies: [dataFromGetCalendar, isFetching],
+	// });
 
 	// handlers
 
@@ -70,8 +77,18 @@ export const CalendarApp = () => {
 		}
 	}
 
-	const handleFetchClick = async () => {
-		await refetch();
+	const handleFetchClick = () => {
+		const promise = refetch().then((res) =>
+			res.data?.length === 0
+				? Promise.reject("No results found.")
+				: res.data
+		);
+		toast.dismiss(); // workaround permanently stuck in pending if toast gets queued from exceeding toast limit
+		toast.promise(promise, {
+			pending: "Fetching events...",
+			success: "Events retrieved",
+			error: "Error fetching events",
+		}).then;
 		setHasDataFetched(true);
 	};
 
@@ -194,34 +211,30 @@ export const CalendarApp = () => {
 			</p>
 
 			<div className="flex">
-				<div className="flex">
-					<div className="pb-5 pr-9">
-						<DatePicker
-							id="startDate"
-							value={startDate}
-							onChange={(e) => {
-								setStartDate(e.target.value);
-							}}
-							labelName="from"
-						/>
+				<form onSubmit={handleFetchClick}>
+					<div className="flex">
+						<div className="pb-5 pr-9">
+							<DatePicker
+								id="startDate"
+								value={startDate}
+								onBlur={setStartDateValidated}
+								labelName="From:"
+								readOnly={false}
+							/>
+						</div>
+						<div>
+							<DatePicker
+								id="endDate"
+								value={endDate}
+								onBlur={setEndDateValidated}
+								labelName="To:"
+								readOnly={false}
+							/>
+						</div>
 					</div>
-					<div>
-						<DatePicker
-							id="endDate"
-							value={endDate}
-							onChange={(e) => {
-								setEndDate(e.target.value);
-							}}
-							labelName="to"
-						/>
-					</div>
-				</div>
-				<div className="fixed left-1/2 transform translate-x-1/2">
-					{/* <p>{(isFetching || isPatching) && "Loading..."}</p> */}
-					<div><span>test</span></div>
-				</div>
-				
+				</form>
 			</div>
+
 			<div className="flex">
 				<div className="pr-3">
 					<button
@@ -260,7 +273,12 @@ export const CalendarApp = () => {
 					}
 				/>
 			</div>
-			<ToastContainer theme="dark" />
+			<ToastContainer
+				theme="dark"
+				limit={10}
+				pauseOnHover={false}
+				pauseOnFocusLoss={false}
+			/>
 		</>
 	);
 };

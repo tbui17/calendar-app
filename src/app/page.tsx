@@ -22,27 +22,27 @@ export default function Home() {
 		return (
 			<>
 				<CalendarErrorBoundary>
-				<div
-					id="navbar"
-					className=" bg-gray-900"
-				>
-					<div className="flex items-center justify-center">
-						<div className="text-center flex-grow"><p className="mr-2">Welcome {data.user?.email}</p></div>
-						<SignOutButton />
+					<div id="navbar" className=" bg-gray-900">
+						<div className="flex items-center justify-center">
+							<div className="flex-grow text-center">
+								<p className="mr-2">
+									Welcome <b>{data.user?.email}</b>
+								</p>
+							</div>
+							<SignOutButton />
+						</div>
 					</div>
-				</div>
 
-				<CalendarApp />
+					<CalendarApp />
 				</CalendarErrorBoundary>
 			</>
 		);
 	} else {
 		return (
 			<div className="vh-center">
-				<div className="bg-slate-900 p-14 border border-blue-600">
+				<div className="border border-blue-600 bg-slate-900 p-14">
 					<GoogleDisclaimer />
 					<div>
-						
 						<p className="pb-5">Not signed in.</p>
 						<SignInButton />
 					</div>
