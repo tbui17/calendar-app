@@ -48,31 +48,32 @@ export const useDateRange = (
 		setEndDate(e.target.value);
 	};
 
-	// const validateDates = () => {
-	//   const start = new Date(startDate);
-	//   const end = new Date(endDate);
-	//   if (start > end) {
-	//     return new Error("Start date cannot be after end date");
-	//   }
-	//   if (start < new Date(MIN_DATE)) {
-	//     return new Error(`Start date cannot be before ${MIN_DATE}`);
-	//   }
-	//   if (end < start) {
-	//     return new Error("End date cannot be before start date");
-	//   }
-	//   if (end > new Date(MAX_DATE)) {
-	//     return new Error(`End date cannot be after ${MAX_DATE}`);
-	//   }
-	//   return true;
-	// };
+	const validateDates = () => {
+	  const start = new Date(startDate);
+	  const end = new Date(endDate);
+    const errors:string[] = []
+    if (start > end) {
+      errors.push("Start date cannot be after end date");
+    }
+    if (end < start) {
+      errors.push("End date cannot be before start date");
+    }
+    if (start < new Date(MIN_DATE)) {
+      errors.push(`Start date cannot be before ${MIN_DATE}`);
+    }
+    if (end > new Date(MAX_DATE)) {
+      errors.push(`End date cannot be after ${MAX_DATE}`);
+    }
+	  return errors
+	};
 
 	return {
 		startDate,
 		endDate,
-		// setStartDate,
-		// setEndDate,
-		// validateDates,
-		setStartDateValidated,
-		setEndDateValidated,
+		setStartDate,
+		setEndDate,
+		validateDates,
+		// setStartDateValidated,
+		// setEndDateValidated,
 	};
 };

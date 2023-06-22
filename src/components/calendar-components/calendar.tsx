@@ -8,11 +8,13 @@ import {
 	CellValueChangedEvent,
 	ColDef,
 	ICellRendererParams,
+	NewValueParams,
 } from "ag-grid-community";
 import React, { FormEvent, useRef, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 
 import { AgGridReact } from "ag-grid-react";
+import BaseButton from "../base-button";
 import { DatePicker } from "./date-picker";
 import ErrorAccessTokenExpired from "../error-access-token-expired";
 import { ICalendarRowDataSchema } from "@/types/row-data-types";
@@ -28,7 +30,7 @@ import { useToastEffect } from "@/hooks/useToastEffect";
 
 export const CalendarApp = () => {
 	// hooks
-	const { endDate, setStartDateValidated, startDate, setEndDateValidated } =
+	const { endDate, validateDates, startDate, setStartDate, setEndDate } =
 		useDateRange();
 	const {
 		data: dataFromGetCalendar,
@@ -69,30 +71,63 @@ export const CalendarApp = () => {
 
 	// handlers
 
+	const handleStartDateChanged = (date: Date | null) => {
+
+	}
+
+	const handleSubmitDate = (e: FormEvent<HTMLFormElement>) => {
+		e.preventDefault();
+		const res = validateDates();
+
+		res.length > 0
+			? res.forEach((err) => toast.error(err))
+			: handleFetchData();
+	};
+
 	function handleCellChange(
 		e: CellValueChangedEvent<ICalendarRowDataSchema>
 	) {
 		if (e.data?.changeType === "none") {
-			e.data.changeType = "updated";
+			e.data.changeType = "updated"; // ok to do? the data does not take part in any rendering and is just used for internal logic, and no other component reacts to it
 		}
+		return
 	}
 
-	const handleFetchClick = () => {
-		const promise = refetch().then((res) =>
-			res.data?.length === 0
-				? Promise.reject("No results found.")
-				: res.data
-		);
+	const handleFetchData = () => {
 		toast.dismiss(); // workaround permanently stuck in pending if toast gets queued from exceeding toast limit
+		const promise = refetch().then((res) => {
+			if (res.data?.length === 0) {
+				throw new Error("No events found.");
+			}
+			return res;
+		});
+
 		toast.promise(promise, {
 			pending: "Fetching events...",
 			success: "Events retrieved",
-			error: "Error fetching events",
-		}).then;
+			error: {
+				render: (data) => {
+					const err = data.data;
+					if (err instanceof Error) {
+						if (
+							err.message ===
+							"Request failed with status code 401"
+						) {
+							throw err;
+						}
+						return err.message;
+					}
+					console.error(err);
+
+					return "Unknown error during fetching.";
+				},
+			},
+		});
 		setHasDataFetched(true);
 	};
 
 	const handleSendClick = async () => {
+		toast("WIP");
 		if (!dataFromGetCalendar) {
 			toast("No data");
 			return;
@@ -168,6 +203,9 @@ export const CalendarApp = () => {
 			},
 			editable: true,
 			cellEditor: PickerRendererMUI,
+			onCellValueChanged: (e:NewValueParams<ICalendarRowDataSchema>) => {
+				e.data.start > e.data.end && (e.data.start = e.data.end)
+			},
 			resizable: true,
 		},
 		{
@@ -206,36 +244,56 @@ export const CalendarApp = () => {
 
 	return (
 		<>
-			<p className="mb-4">
-				Choose the date range to fetch calendar data.
-			</p>
-
-			<div className="flex">
-				<form onSubmit={handleFetchClick}>
-					<div className="flex">
-						<div className="pb-5 pr-9">
-							<DatePicker
-								id="startDate"
-								value={startDate}
-								onBlur={setStartDateValidated}
-								labelName="From:"
-								readOnly={false}
-							/>
-						</div>
-						<div>
-							<DatePicker
-								id="endDate"
-								value={endDate}
-								onBlur={setEndDateValidated}
-								labelName="To:"
-								readOnly={false}
-							/>
-						</div>
+			<form id="submitDateForm" onSubmit={handleSubmitDate}>
+				<p className="mb-4">
+					Choose the date range to fetch calendar data.
+				</p>
+				<div className="flex">
+					<div className="pb-5 pr-9">
+						<DatePicker
+							id="startDate"
+							value={startDate}
+							onChange={(e) => setStartDate(e.target.value)}
+							labelName="From:"
+							readOnly={false}
+						/>
 					</div>
-				</form>
-			</div>
+					<div>
+						<DatePicker
+							id="endDate"
+							value={endDate}
+							onChange={(e) => setEndDate(e.target.value)}
+							labelName="To:"
+							readOnly={false}
+						/>
+					</div>
+					<div className="-translate-y-2 pl-7">
+						<BaseButton
+							buttonText={"Fetch Data"}
+							id="fetchData"
+							type="submit"
+						/>
+					</div>
+				</div>
+				<div className="pl-3 pr-3">
+					<div>
+						<button
+							onClick={handleSendClick}
+							type="button"
+							className={`mb-2 mr-2 rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 ${
+								hasDataFetched
+									? ""
+									: "cursor-not-allowed opacity-50"
+							}`}
+							disabled={!hasDataFetched}
+						>
+							Send Data
+						</button>
+					</div>
+				</div>
+			</form>
 
-			<div className="flex">
+			{/* <div className="flex">
 				<div className="pr-3">
 					<button
 						onClick={handleFetchClick}
@@ -256,7 +314,7 @@ export const CalendarApp = () => {
 				>
 					Send Data
 				</button>
-			</div>
+			</div> */}
 
 			<div
 				id="gridContainer"

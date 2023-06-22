@@ -18,6 +18,9 @@ export const useGetCalendar = (props: IGetEventsArgs) => {
 			refetchOnWindowFocus: false,
 			enabled: false,
 			retry: false,
+			
+			staleTime: 5000 // avoid unnecessarily refetching in case accidentally double click or spam click
+
 		}
 	);
 };

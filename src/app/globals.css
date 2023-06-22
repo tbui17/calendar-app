@@ -48,3 +48,10 @@ body {
   left: 50%;
   transform: translateX(-50%);
 }
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  
+}
+/* impossible to change built in date picker calendar css, need to use materialUI */
+
