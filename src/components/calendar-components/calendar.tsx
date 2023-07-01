@@ -4,12 +4,7 @@ import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import "react-toastify/dist/ReactToastify.css";
 
-import {
-	CellValueChangedEvent,
-	ColDef,
-	ICellRendererParams,
-	NewValueParams,
-} from "ag-grid-community";
+import { CellValueChangedEvent, ColDef, ICellRendererParams, NewValueParams } from "ag-grid-community";
 import React, { FormEvent, useRef, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 
@@ -30,8 +25,7 @@ import { useToastEffect } from "@/hooks/useToastEffect";
 
 export const CalendarApp = () => {
 	// hooks
-	const { endDate, validateDates, startDate, setStartDate, setEndDate } =
-		useDateRange();
+	const { endDate, validateDates, startDate, setStartDate, setEndDate } = useDateRange();
 	const {
 		data: dataFromGetCalendar,
 		isFetching,
@@ -71,26 +65,20 @@ export const CalendarApp = () => {
 
 	// handlers
 
-	const handleStartDateChanged = (date: Date | null) => {
-
-	}
+	const handleStartDateChanged = (date: Date | null) => {};
 
 	const handleSubmitDate = (e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		const res = validateDates();
 
-		res.length > 0
-			? res.forEach((err) => toast.error(err))
-			: handleFetchData();
+		res.length > 0 ? res.forEach((err) => toast.error(err)) : handleFetchData();
 	};
 
-	function handleCellChange(
-		e: CellValueChangedEvent<ICalendarRowDataSchema>
-	) {
+	function handleCellChange(e: CellValueChangedEvent<ICalendarRowDataSchema>) {
 		if (e.data?.changeType === "none") {
 			e.data.changeType = "updated"; // ok to do? the data does not take part in any rendering and is just used for internal logic, and no other component reacts to it
 		}
-		return
+		return;
 	}
 
 	const handleFetchData = () => {
@@ -109,10 +97,7 @@ export const CalendarApp = () => {
 				render: (data) => {
 					const err = data.data;
 					if (err instanceof Error) {
-						if (
-							err.message ===
-							"Request failed with status code 401"
-						) {
+						if (err.message === "Request failed with status code 401") {
 							throw err;
 						}
 						return err.message;
@@ -196,15 +181,20 @@ export const CalendarApp = () => {
 			field: "start",
 			sortable: true,
 			filter: "agDateColumnFilter",
-			cellRenderer: (
-				params: ICellRendererParams<ICalendarRowDataSchema>
-			) => {
+			cellRenderer: (params: ICellRendererParams<ICalendarRowDataSchema>) => {
 				return convertDate(params);
 			},
 			editable: true,
 			cellEditor: PickerRendererMUI,
-			onCellValueChanged: (e:NewValueParams<ICalendarRowDataSchema>) => {
-				e.data.start > e.data.end && (e.data.start = e.data.end)
+			onCellValueChanged: (e: NewValueParams<ICalendarRowDataSchema>) => {
+				if (e.data.start > e.data.end) {
+					// https://www.ag-grid.com/react-data-grid/data-update-single-row-cell/
+					// https://www.ag-grid.com/react-data-grid/row-ids/
+
+					const node = gridRef.current!.api.getRowNode(e.data.id);
+
+					node?.setDataValue("start", e.data.end);
+				}
 			},
 			resizable: true,
 		},
@@ -212,9 +202,7 @@ export const CalendarApp = () => {
 			field: "end",
 			sortable: true,
 			filter: "agDateTimeColumnFilter",
-			cellRenderer: (
-				params: ICellRendererParams<ICalendarRowDataSchema>
-			) => convertDate(params),
+			cellRenderer: (params: ICellRendererParams<ICalendarRowDataSchema>) => convertDate(params),
 			editable: true,
 			cellEditor: PickerRendererMUI,
 			resizable: true,
@@ -245,9 +233,7 @@ export const CalendarApp = () => {
 	return (
 		<>
 			<form id="submitDateForm" onSubmit={handleSubmitDate}>
-				<p className="mb-4">
-					Choose the date range to fetch calendar data.
-				</p>
+				<p className="mb-4">Choose the date range to fetch calendar data.</p>
 				<div className="flex">
 					<div className="pb-5 pr-9">
 						<DatePicker
@@ -268,11 +254,7 @@ export const CalendarApp = () => {
 						/>
 					</div>
 					<div className="-translate-y-2 pl-7">
-						<BaseButton
-							buttonText={"Fetch Data"}
-							id="fetchData"
-							type="submit"
-						/>
+						<BaseButton buttonText={"Fetch Data"} id="fetchData" type="submit" />
 					</div>
 				</div>
 				<div className="pl-3 pr-3">
@@ -281,9 +263,7 @@ export const CalendarApp = () => {
 							onClick={handleSendClick}
 							type="button"
 							className={`mb-2 mr-2 rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 ${
-								hasDataFetched
-									? ""
-									: "cursor-not-allowed opacity-50"
+								hasDataFetched ? "" : "cursor-not-allowed opacity-50"
 							}`}
 							disabled={!hasDataFetched}
 						>
@@ -316,27 +296,17 @@ export const CalendarApp = () => {
 				</button>
 			</div> */}
 
-			<div
-				id="gridContainer"
-				className="ag-theme-alpine-dark"
-				style={{ height: 1000 }}
-			>
+			<div id="gridContainer" className="ag-theme-alpine-dark" style={{ height: 1000 }}>
 				<AgGridReact
 					rowData={dataFromGetCalendar || []}
 					columnDefs={columnDefs}
 					ref={gridRef}
+					getRowId={(params) => params.data.id}
 					onCellValueChanged={(e) => handleCellChange(e)}
-					onGridSizeChanged={(params) =>
-						params.api.sizeColumnsToFit()
-					}
+					onGridSizeChanged={(params) => params.api.sizeColumnsToFit()}
 				/>
 			</div>
-			<ToastContainer
-				theme="dark"
-				limit={10}
-				pauseOnHover={false}
-				pauseOnFocusLoss={false}
-			/>
+			<ToastContainer theme="dark" limit={10} pauseOnHover={false} pauseOnFocusLoss={false} />
 		</>
 	);
 };

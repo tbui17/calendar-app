@@ -46,6 +46,7 @@
     "fs": "^0.0.1-security",
     "googleapis": "105",
     "http-shutdown": "^1.2.2",
+    "immer": "^10.0.2",
     "jquery": "^3.7.0",
     "lodash": "^4.17.21",
     "mocha": "^10.2.0",
@@ -64,6 +65,7 @@
     "ts-node": "^10.9.1",
     "tspath": "^2.6.8",
     "typescript": "5.0.4",
+    "use-immer": "^0.9.0",
     "vitest": "^0.31.0",
     "zod": "^3.21.4"
   },

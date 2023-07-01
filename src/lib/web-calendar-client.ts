@@ -20,6 +20,7 @@ import { calendar_v3 } from "googleapis";
 import { z } from "zod";
 
 // https://developers.google.com/calendar/api/v3/reference/events/list
+// https://stackoverflow.com/questions/22939130/when-should-i-use-arrow-functions-in-ecmascript-6
 export class WebCalendarClient {
 	// TODO: add token refresh after fixing backend
 
