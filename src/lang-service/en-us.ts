@@ -12,6 +12,8 @@ export const EN_US = {
     "createDateEvent":"Create date event",
     "createDateTimeEvent":"Create datetime event",
     "deleteSelectedEvents":"Delete selected events",
+    "from":"From",
+    "to":"To",
     
 } as const
 

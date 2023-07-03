@@ -296,7 +296,7 @@ export const CalendarApp = () => {
 
 	return (
 		<>
-			<form id="submitDateForm" onSubmit={handleSubmitDate} className="mb-8">
+			<form id="fetchDataDateRangeForm" onSubmit={handleSubmitDate} className="mb-8">
 				<legend className="mb-4">{languageService.get("dateRangePrompt")}</legend>
 				<div className="flex">
 					<div className="pb-5 pr-9">
@@ -304,7 +304,7 @@ export const CalendarApp = () => {
 							id="startDate"
 							value={startDate}
 							onChange={setStartDateValidated}
-							labelName="From:"
+							labelName={`${languageService.get("from")}: `}
 							readOnly={false}
 						/>
 					</div>
@@ -313,7 +313,7 @@ export const CalendarApp = () => {
 							id="endDate"
 							value={endDate}
 							onChange={setEndDateValidated}
-							labelName="To:"
+							labelName={`${languageService.get("to")}: `}
 							readOnly={false}
 						/>
 					</div>
@@ -360,28 +360,7 @@ export const CalendarApp = () => {
 				</section>
 			</div>
 
-			{/* <div className="flex">
-				<div className="pr-3">
-					<button
-						onClick={handleFetchClick}
-						type="button"
-						className={`mb-2 mr-2 rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800`}
-					>
-						Fetch Data
-					</button>
-				</div>
 
-				<button
-					onClick={handleSendClick}
-					type="button"
-					className={`mb-2 mr-2 rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 ${
-						hasDataFetched ? "" : "cursor-not-allowed opacity-50"
-					}`}
-					disabled={!hasDataFetched}
-				>
-					Send Data
-				</button>
-			</div> */}
 
 			<div id="gridContainer" className="ag-theme-alpine-dark" style={{ height: 1000 }}>
 				<AgGridReact
