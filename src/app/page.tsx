@@ -22,16 +22,16 @@ export default function Home() {
 		return (
 			<>
 				<CalendarErrorBoundary>
-					<div id="navbar" className=" bg-gray-900">
+					<section id="headerBar" className=" bg-gray-900">
 						<div className="flex items-center justify-center">
 							<div className="flex-grow text-center">
-								<p className="mr-2">
+								<aside className="mr-2">
 									Welcome <b>{data.user?.email}</b>
-								</p>
+								</aside>
 							</div>
 							<SignOutButton />
 						</div>
-					</div>
+					</section>
 
 					<CalendarApp />
 				</CalendarErrorBoundary>
@@ -40,13 +40,13 @@ export default function Home() {
 	} else {
 		return (
 			<div className="vh-center">
-				<div className="border border-blue-600 bg-slate-900 p-14">
+				<section className="border border-blue-600 bg-slate-900 p-14">
 					<GoogleDisclaimer />
-					<div>
-						<p className="pb-5">Not signed in.</p>
+					<section>
+						<h1 className="pb-5">Not signed in.</h1>
 						<SignInButton />
-					</div>
-				</div>
+					</section>
+				</section>
 			</div>
 		);
 	}

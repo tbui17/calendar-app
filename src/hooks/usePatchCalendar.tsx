@@ -1,7 +1,7 @@
 import { UseMutationResult, useMutation } from "@tanstack/react-query";
 
 import { AxiosError } from "axios";
-import { IOutboundEventSchema } from "@/types/event-types";
+import { IOutboundEvent } from "@/types/event-types";
 import { Session } from "next-auth";
 import { WebCalendarClient } from "@/lib/web-calendar-client";
 import { useSession } from "next-auth/react";
@@ -12,14 +12,14 @@ import { useSession } from "next-auth/react";
  * @returns {DefinedUseQueryResult} - The result of the query.
  */
 
-export const usePatchCalendar = (): UseMutationResult<any, AxiosError, IOutboundEventSchema> => {
+export const usePatchCalendar = (): UseMutationResult<any, AxiosError, IOutboundEvent> => {
 	const sessionData = useSession().data as Session & { access_token: string };
 	const token = sessionData?.access_token
 	const client = new WebCalendarClient(token)
 
 	return useMutation(
 		
-		async (data: IOutboundEventSchema) => {
+		async (data: IOutboundEvent) => {
 			return client.updateEvent(data)
 		},{
 			retry(failureCount, error) {

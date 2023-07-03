@@ -25,7 +25,7 @@ export class WebCalendarClient {
 	// TODO: add token refresh after fixing backend
 
 	private instance: AxiosInstance;
-	constructor(private access_token: string) {
+	constructor(access_token: string) {
 		this.instance = axios.create({
 			headers: {
 				Authorization: `Bearer ${access_token}`,
@@ -86,8 +86,28 @@ export class WebCalendarClient {
 		return res;
 	}
 
-	async createEvent<T extends IValidPatchProps>(event:any){
-		return this.instance.post("https://www.googleapis.com/calendar/v3/calendars/primary/events", event)
+	/**
+	 * 
+	 * @param event 
+	 * @throws {AxiosError}
+	 * @returns 
+	 */
+	async createEvent<T extends IValidPatchProps>(event:T){
+		return this.instance.post<
+		any,
+		AxiosResponse<calendar_v3.Schema$Event>,
+		IValidPatchProps
+	>("https://www.googleapis.com/calendar/v3/calendars/primary/events", event)
+	}
+
+	/**
+	 * 
+	 * @param id 
+	 * @throws {AxiosError}
+	 * @returns 
+	 */
+	async deleteEvent(id:string){
+		return this.instance.delete(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${id}`)
 	}
 
 

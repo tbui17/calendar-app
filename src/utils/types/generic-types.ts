@@ -7,7 +7,7 @@ export type ValueOf<T> = T[keyof T];
 
 
 
-// https://stackoverflow.com/questions/55539387/deep-omit-with-typescript
+
 
 /** Union of primitives to skip with deep omit utilities. */
 type Primitive = string | Function | number | boolean | Symbol | undefined | null
@@ -17,6 +17,7 @@ export type DeepOmitArray<T extends any[], K> = {
     [P in keyof T]: DeepOmit<T[P], K>
 }
 
+// https://stackoverflow.com/questions/55539387/deep-omit-with-typescript
 /** Deeply omit members of an interface or type. */
 export type DeepOmit<T, K> = T extends Primitive ? T : {
     [P in Exclude<keyof T, K>]: //extra level of indirection needed to trigger homomorhic behavior // ??? 
@@ -41,3 +42,13 @@ export type PartialDeepOmit<T, K> = T extends Primitive ? T : Partial<{
         Partial<PartialDeepOmit<TP, K>>
         : never
 }>
+
+/**
+ * Generates discriminated union types from an object type and a list of strings.
+ */
+type GenerateChangeTypes<
+	TObject,
+	TDiscriminatorStrings extends readonly string[]
+> = {
+	[TKey in TDiscriminatorStrings[number]]: TObject & { changeType: TKey };
+}[TDiscriminatorStrings[number]];

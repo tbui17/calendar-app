@@ -4,28 +4,29 @@ import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import "react-toastify/dist/ReactToastify.css";
 
-import { CellValueChangedEvent, ColDef, ICellRendererParams, NewValueParams } from "ag-grid-community";
+import { CellValueChangedEvent, ColDef, GridReadyEvent, ICellRendererParams, NewValueParams } from "ag-grid-community";
+import { ICalendarRowDataSchema, RowDataFilterModel } from "@/types/row-data-types";
 import React, { FormEvent, useRef, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
+import { filterPostPatchDelete, getRowData } from "@/transforms/filterPostPatchDelete";
 
 import { AgGridReact } from "ag-grid-react";
 import BaseButton from "../base-button";
 import { DatePicker } from "./date-picker";
 import ErrorAccessTokenExpired from "../error-access-token-expired";
-import { ICalendarRowDataSchema } from "@/types/row-data-types";
 import PickerRendererMUI from "./picker-renderer-mui";
+import { convertContainerData } from "@/transforms/convert-container-data";
 import { convertDate } from "@/lib/convert-date";
-import { filterPostPatchDelete } from "@/lib/table-functions/filterPostPatchDelete";
 import { isAxiosError } from "axios";
+import { languageService } from "@/lang-service/language-service";
 import { useDateRange } from "@/hooks/useDateRange";
 import { useGetCalendar } from "@/hooks/useGetCalendar";
 import { usePatchCalendar } from "@/hooks/usePatchCalendar";
 import { useQueryClient } from "@tanstack/react-query";
-import { useToastEffect } from "@/hooks/useToastEffect";
 
 export const CalendarApp = () => {
 	// hooks
-	const { endDate, validateDates, startDate, setStartDate, setEndDate } = useDateRange();
+	const { endDate, validateDates, startDate, setEndDateValidated, setStartDateValidated } = useDateRange();
 	const {
 		data: dataFromGetCalendar,
 		isFetching,
@@ -65,7 +66,26 @@ export const CalendarApp = () => {
 
 	// handlers
 
-	const handleStartDateChanged = (date: Date | null) => {};
+	const handleCreateEvent = (dateType: "date" | "dateTime") => {
+		const rowData: ICalendarRowDataSchema = {
+			id: crypto.randomUUID(),
+			summary: "",
+			description: "",
+			changeType: "created",
+			start: new Date(),
+			end: new Date(),
+			dateType: dateType
+		};
+		gridRef.current?.api.applyTransaction({ add: [rowData] });
+	}
+
+	const handleCreateDateEvent = () => {
+		handleCreateEvent("date")
+	};
+
+	const handleCreateDateTimeEvent = () => {
+		handleCreateEvent("dateTime")
+	};
 
 	const handleSubmitDate = (e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
@@ -75,11 +95,27 @@ export const CalendarApp = () => {
 	};
 
 	function handleCellChange(e: CellValueChangedEvent<ICalendarRowDataSchema>) {
-		if (e.data?.changeType === "none") {
-			e.data.changeType = "updated"; // ok to do? the data does not take part in any rendering and is just used for internal logic, and no other component reacts to it
-		}
-		return;
+		const {data} = e
+		data.changeType === "none" && gridRef.current!.api.getRowNode(data.id)?.setDataValue("changeType", "updated")
+		
 	}
+
+	const handleDelete = () => {
+		const selectedNodes = gridRef.current!.api.getSelectedNodes();
+		const deleted: ICalendarRowDataSchema[] = [];
+		selectedNodes.forEach(({data}) => {
+			if (data) {
+				const copy = { ...data };
+				copy.changeType = data.changeType === "created" ? "fakedeleted" : "deleted";
+				deleted.push(copy);
+			}
+		});
+		// setDeletedData((prev) => { // potential edge case where user deletes then immediately sends data, not all data is sent because of async updates?
+		// 	return [...prev, ...deleted]
+		// });
+
+		deleted.length !== 0 && gridRef.current!.api.applyTransaction({ update: deleted });
+	};
 
 	const handleFetchData = () => {
 		toast.dismiss(); // workaround permanently stuck in pending if toast gets queued from exceeding toast limit
@@ -91,11 +127,11 @@ export const CalendarApp = () => {
 		});
 
 		toast.promise(promise, {
-			pending: "Fetching events...",
-			success: "Events retrieved",
+			pending: languageService.get("fetchingEvents"),
+			success: languageService.get("eventsRetrieved"),
 			error: {
-				render: (data) => {
-					const err = data.data;
+				render: (props) => {
+					const err = props.data;
 					if (err instanceof Error) {
 						if (err.message === "Request failed with status code 401") {
 							throw err;
@@ -104,7 +140,7 @@ export const CalendarApp = () => {
 					}
 					console.error(err);
 
-					return "Unknown error during fetching.";
+					return languageService.get("unknownFetchError");
 				},
 			},
 		});
@@ -112,9 +148,8 @@ export const CalendarApp = () => {
 	};
 
 	const handleSendClick = async () => {
-		toast("WIP");
 		if (!dataFromGetCalendar) {
-			toast("No data");
+			toast(languageService.get("noFetchData"));
 			return;
 		}
 
@@ -130,8 +165,20 @@ export const CalendarApp = () => {
 			console.debug("No reference");
 			return;
 		}
-		const res = filterPostPatchDelete(gridRef.current);
-		console.debug(res);
+
+		const rowData = getRowData(gridRef.current);
+
+		const container = filterPostPatchDelete(rowData);
+		const preppedData = convertContainerData(container);
+		const postData = preppedData.postRowData.map(({ id, ...item }) => {
+			return item;
+		});
+		const deleteData = preppedData.deleteRowData.map(({ id, ...item }) => {
+			return id;
+		});
+		
+
+		// TODO: send data to react query
 
 		// // console.log(filterEventMutationsResult);
 
@@ -159,19 +206,31 @@ export const CalendarApp = () => {
 		// setIsPatching(false);
 	};
 
+	const gridReadyHandler = (params: GridReadyEvent) => {
+		const filter = gridRef.current!.api.getFilterInstance("changeType");
+
+		filter?.setModel({
+			// notcontains should cover "deleted" and "fakedeleted". fakedeleted not camelCase for this reason. don't need enterprise version
+			type: "notContains",
+			filter: "deleted",
+			filterType: "text",
+		});
+		gridRef.current!.api.onFilterChanged();
+	};
+
 	// table configs
 
 	const defaultColumnDefs: ColDef[] = [
-		{ field: "id", sortable: true, filter: true, resizable: true },
+		{ field: "id", sortable: true, filter: true, resizable: true, checkboxSelection: true, lockPosition: true },
 		{
-			field: "description",
+			field: "summary",
 			sortable: true,
 			filter: true,
 			editable: true,
 			resizable: true,
 		},
 		{
-			field: "summary",
+			field: "description",
 			sortable: true,
 			filter: true,
 			editable: true,
@@ -207,6 +266,11 @@ export const CalendarApp = () => {
 			cellEditor: PickerRendererMUI,
 			resizable: true,
 		},
+		{
+			field: "changeType",
+			filter: true,
+			hide: true,
+		},
 	];
 
 	const [columnDefs] = useState<ColDef[]>(defaultColumnDefs);
@@ -225,21 +289,21 @@ export const CalendarApp = () => {
 				);
 			}
 		} else if (error instanceof Error) {
-			toast("An error occurred.");
+			toast(languageService.get("unknownErrorOccurred"));
 			console.error(error);
 		}
 	}
 
 	return (
 		<>
-			<form id="submitDateForm" onSubmit={handleSubmitDate}>
-				<p className="mb-4">Choose the date range to fetch calendar data.</p>
+			<form id="submitDateForm" onSubmit={handleSubmitDate} className="mb-8">
+				<legend className="mb-4">{languageService.get("dateRangePrompt")}</legend>
 				<div className="flex">
 					<div className="pb-5 pr-9">
 						<DatePicker
 							id="startDate"
 							value={startDate}
-							onChange={(e) => setStartDate(e.target.value)}
+							onChange={setStartDateValidated}
 							labelName="From:"
 							readOnly={false}
 						/>
@@ -248,30 +312,53 @@ export const CalendarApp = () => {
 						<DatePicker
 							id="endDate"
 							value={endDate}
-							onChange={(e) => setEndDate(e.target.value)}
+							onChange={setEndDateValidated}
 							labelName="To:"
 							readOnly={false}
 						/>
 					</div>
 					<div className="-translate-y-2 pl-7">
-						<BaseButton buttonText={"Fetch Data"} id="fetchData" type="submit" />
-					</div>
-				</div>
-				<div className="pl-3 pr-3">
-					<div>
-						<button
-							onClick={handleSendClick}
-							type="button"
-							className={`mb-2 mr-2 rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 ${
-								hasDataFetched ? "" : "cursor-not-allowed opacity-50"
-							}`}
-							disabled={!hasDataFetched}
-						>
-							Send Data
-						</button>
+						<BaseButton
+							buttonText={languageService.get("fetchDataButtonText")}
+							id="fetchData"
+							type="submit"
+						/>
 					</div>
 				</div>
 			</form>
+
+			<div className="pl-3 pr-3">
+				<section className="flex">
+					<button
+						onClick={handleSendClick}
+						type="button"
+						className={`btn-pressed mb-2 mr-2 rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 ${
+							hasDataFetched ? "" : "cursor-not-allowed opacity-50"
+						}`}
+						disabled={!hasDataFetched}
+					>
+						{languageService.get("sendDataButton")}
+					</button>
+					<BaseButton
+						buttonText={languageService.get("createDateEvent")}
+						id="createDateData"
+						disableCondition={!hasDataFetched}
+						onClick={handleCreateDateEvent}
+					/>
+					<BaseButton
+						buttonText={languageService.get("createDateTimeEvent")}
+						id="createDateTimeData"
+						disableCondition={!hasDataFetched}
+						onClick={handleCreateDateTimeEvent}
+					/>
+					<BaseButton
+						buttonText={languageService.get("deleteSelectedEvents")}
+						id="createDateTimeData"
+						disableCondition={!hasDataFetched}
+						onClick={handleDelete}
+					/>
+				</section>
+			</div>
 
 			{/* <div className="flex">
 				<div className="pr-3">
@@ -301,9 +388,11 @@ export const CalendarApp = () => {
 					rowData={dataFromGetCalendar || []}
 					columnDefs={columnDefs}
 					ref={gridRef}
+					rowSelection="multiple"
 					getRowId={(params) => params.data.id}
 					onCellValueChanged={(e) => handleCellChange(e)}
 					onGridSizeChanged={(params) => params.api.sizeColumnsToFit()}
+					onGridReady={gridReadyHandler}
 				/>
 			</div>
 			<ToastContainer theme="dark" limit={10} pauseOnHover={false} pauseOnFocusLoss={false} />

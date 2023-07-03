@@ -14,12 +14,12 @@ export const dateField = z.object({ date: z.string().regex(yyyymmddRegex) })
 export const dateTimeField = z.object({ dateTime: z.string() })
 
 
-export const googleDateEventKeyPropsSchema = z.object({
+export const googleDateEventCorePropsSchema = z.object({
 	start: dateField,
 	end: dateField,
 })
 
-export const googleDateTimeEventKeyPropsSchema = z.object({
+export const googleDateTimeEventCorePropsSchema = z.object({
 	start: dateTimeField,
 	end: dateTimeField,
 })
@@ -42,26 +42,26 @@ export const baseEventSchema = z.object({
 });
 
 
-export const preDateEventSchema = baseEventSchema.merge(googleDateEventKeyPropsSchema)
+export const googleDateEventSchema = baseEventSchema.merge(googleDateEventCorePropsSchema)
 
-export const dateEventSchema = preDateEventSchema.extend({ // adds the discriminant field to later make discriminated union
+export const dateEventSchema = googleDateEventSchema.extend({ // adds the discriminant field to later make discriminated union
 	dateType: z.literal("date").default("date"),
 	start: dateString,
 	end: dateString,
 });
 
 
-export const preDateTimeEventSchema = baseEventSchema.merge(googleDateTimeEventKeyPropsSchema)
+export const googleDateTimeEventSchema = baseEventSchema.merge(googleDateTimeEventCorePropsSchema)
 
-export const dateTimeEventSchema = preDateTimeEventSchema.extend({
+export const dateTimeEventSchema = googleDateTimeEventSchema.extend({
 	dateType: z.literal("dateTime").default("dateTime"),
 	start: dateTimeString,
 	end: dateTimeString,
 });
 
-export const preCalendarEventSchema = z.union([
-	preDateEventSchema,
-	preDateTimeEventSchema,
+export const googleEventSchema = z.union([
+	googleDateEventSchema,
+	googleDateTimeEventSchema,
 ]);
 
 export const calendarEventSchema = z.discriminatedUnion("dateType", [
@@ -69,8 +69,14 @@ export const calendarEventSchema = z.discriminatedUnion("dateType", [
 	dateTimeEventSchema,
 ]);
 
-export type IOutboundEventSchema = z.infer<typeof preCalendarEventSchema>;
+export const googlePostEventSchema = z.union([googleDateEventSchema.omit({id:true}),googleDateTimeEventSchema.omit({id:true})])
 
+
+
+export type IOutboundDateEvent = z.infer<typeof googleDateEventSchema>;
+export type IOutboundDateTimeEvent = z.infer<typeof googleDateTimeEventSchema>;
+export type IOutboundEvent = z.infer<typeof googleEventSchema>;
+export type IGooglePostEvent = z.infer<typeof googlePostEventSchema>;
 
 
 // export type INextResponse<T> = {
@@ -141,8 +147,8 @@ export function isValidDate(date: string): boolean {
 
 
 export type IOutboundEventContainer = {
-	dateEvents: IOutboundEventSchema[],
-	dateTimeEvents: IOutboundEventSchema[]
+	dateEvents: IOutboundDateEvent[]
+	dateTimeEvents: IOutboundDateTimeEvent[]
 }
 
 
@@ -484,6 +490,8 @@ export type IValidPatchProps = Omit<
 	O.Partial<_WritableEventProps, "deep">,
 	"id"
 >;
+
+
 
 
 export type IGetEventsArgs = {

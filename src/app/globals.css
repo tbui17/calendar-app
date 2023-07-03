@@ -55,3 +55,11 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 /* impossible to change built in date picker calendar css, need to use materialUI */
 
+
+.btn-pressed {
+  transition: transform 100ms; /* equivalent to transition duration-100 in Tailwind */
+}
+
+.btn-pressed:active {
+  transform: scale(0.9); /* equivalent to active:scale-90 in Tailwind */
+}
