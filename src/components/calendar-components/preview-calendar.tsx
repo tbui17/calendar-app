@@ -112,7 +112,7 @@ export const PreviewCalendarApp = () => {
 	};
 	const handleCellValueChanged = (event: CellValueChangedEvent) => {
 		const rowNode = event.node;
-		const rowIndex = rowNode.rowIndex;
+		const { rowIndex } = rowNode;
 		if (rowIndex === null || rowIndex === undefined) {
 			return;
 		}
