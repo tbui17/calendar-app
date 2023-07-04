@@ -131,6 +131,7 @@ export const CalendarApp = () => {
 			gridRef.current!.api.getRowNode(item.id)?.setDataValue("changeType", item.previousChangeType); // small bug, setting changeType to "none" triggers onCellChange
 		});
 		setDeletedItems([]);
+		gridRef.current!.api.onFilterChanged();
 	};
 
 	const handleFetchData = () => {
