@@ -61,6 +61,7 @@ function DateCellEditor(
 	return (
 		<div>
 			<input
+				placeholder="Enter date"
 				type={settings.type}
 				value={settings.value}
 				onChange={handleDateChange}

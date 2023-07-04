@@ -12,7 +12,7 @@ export const convertDate = (
 		tableNode: ICellRendererParams<ICalendarRowDataSchema>,
 	) => {
 		const dateType = tableNode.data?.dateType
-		if (dateType === "date") return moment(tableNode.value).format("MM-DD-YYYY");
+		if (dateType === "date") {return moment(tableNode.value).format("MM-DD-YYYY");}
 		if (dateType === "dateTime") {
 			return moment(tableNode.value).format("MM-DD-YYYY hh:mm A");
 		}

@@ -1,5 +1,6 @@
 import { isoStringRegex, yyyymmddRegex } from "@/regexes/regexes";
 
+import { Dayjs } from "dayjs";
 import { O } from "ts-toolbelt";
 import { calendar_v3 } from "googleapis";
 import { z } from "zod";
@@ -7,10 +8,26 @@ import { z } from "zod";
 export const dateString = z.string().regex(yyyymmddRegex);
 export const dateTimeString = z.string()
 
+export const dateTypeDateStringLiteralSchema = z.literal("date").default("date")
+export const dateTypeDateTimeStringLiteralSchema = z.literal("dateTime").default("dateTime")
+
 export const dateField = z.object({ date: z.string().regex(yyyymmddRegex) })
 export const dateTimeField = z.object({ dateTime: z.string() })
 
-const stringSchemaCoercedFromUndefinedOrNull = z
+
+export const googleDateEventCorePropsSchema = z.object({
+	start: dateField,
+	end: dateField,
+})
+
+export const googleDateTimeEventCorePropsSchema = z.object({
+	start: dateTimeField,
+	end: dateTimeField,
+})
+
+
+
+export const stringCoercedFromUndefinedOrNullSchema = z
 	.union([z.undefined(), z.null(), z.string()])
 	.transform((val) => {
 		return val === undefined || val === null ? "" : val;
@@ -22,36 +39,30 @@ const stringSchemaCoercedFromUndefinedOrNull = z
 export const baseEventSchema = z.object({
 	id: z.string(),
 	summary: z.string().default(""),
-	description: stringSchemaCoercedFromUndefinedOrNull, // kept as example. this is not necessary. z.string().default("") is enough. there is no null in google event data.
+	description: stringCoercedFromUndefinedOrNullSchema, // kept as example. this is not necessary. z.string().default("") is enough. there is no null in google event data.
 });
 
-// dates event schema
-export const preDateEventSchema = baseEventSchema.extend({
-	start: dateField,
-	end: dateField
-});
 
-export const dateEventSchema = preDateEventSchema.extend({ // adds the discriminant field to later make discriminated union
+export const googleDateEventSchema = baseEventSchema.merge(googleDateEventCorePropsSchema)
+
+export const dateEventSchema = googleDateEventSchema.extend({ // adds the discriminant field to later make discriminated union
 	dateType: z.literal("date").default("date"),
 	start: dateString,
 	end: dateString,
 });
 
-// datetime event schema
-export const preDateTimeEventSchema = baseEventSchema.extend({ //TODO: add timeZone field to datetime
-	start: dateTimeField,
-	end: dateTimeField
-});
 
-export const dateTimeEventSchema = preDateTimeEventSchema.extend({
+export const googleDateTimeEventSchema = baseEventSchema.merge(googleDateTimeEventCorePropsSchema)
+
+export const dateTimeEventSchema = googleDateTimeEventSchema.extend({
 	dateType: z.literal("dateTime").default("dateTime"),
 	start: dateTimeString,
 	end: dateTimeString,
 });
 
-export const preCalendarEventSchema = z.union([
-	preDateEventSchema,
-	preDateTimeEventSchema,
+export const googleEventSchema = z.union([
+	googleDateEventSchema,
+	googleDateTimeEventSchema,
 ]);
 
 export const calendarEventSchema = z.discriminatedUnion("dateType", [
@@ -59,8 +70,14 @@ export const calendarEventSchema = z.discriminatedUnion("dateType", [
 	dateTimeEventSchema,
 ]);
 
-export type IOutboundEventSchema = z.infer<typeof preCalendarEventSchema>;
+export const googlePostEventSchema = z.union([googleDateEventSchema.omit({id:true}),googleDateTimeEventSchema.omit({id:true})])
 
+
+
+export type IOutboundDateEvent = z.infer<typeof googleDateEventSchema>;
+export type IOutboundDateTimeEvent = z.infer<typeof googleDateTimeEventSchema>;
+export type IOutboundEvent = z.infer<typeof googleEventSchema>;
+export type IGooglePostEvent = z.infer<typeof googlePostEventSchema>;
 
 
 // export type INextResponse<T> = {
@@ -110,19 +127,6 @@ export type ICalendarEvent<T extends IDateEventData | IDateTimeEventData> = {
 export type IDateCalendarEvent = ICalendarEvent<IDateEventData>;
 export type IDateTimeCalendarEvent = ICalendarEvent<IDateTimeEventData>;
 
-export function isDateCalendarEvent(
-	event:
-		| ICalendarEvent<IDateEventData | IDateTimeEventData>
-		| calendar_v3.Schema$Event
-): event is IDateCalendarEvent {
-	return (
-		(event.start as IDate).date !== undefined &&
-		(event.end as IDate).date !== undefined &&
-		event.id !== undefined &&
-		event.summary !== undefined &&
-		event.description !== undefined
-	);
-}
 
 export function isDateTimeCalendarEvent(
 	event: ICalendarEvent<any>
@@ -141,10 +145,37 @@ export function isValidDate(date: string): boolean {
 	return date.match(/^\d{4}-\d{2}-\d{2}$/) !== null;
 }
 
-export type ICalendarEventContainer = {
-	dateEvents: IDateCalendarEvent[];
-	dateTimeEvents: IDateTimeCalendarEvent[];
-};
+
+
+export type IOutboundEventContainer = {
+	dateEvents: IOutboundDateEvent[]
+	dateTimeEvents: IOutboundDateTimeEvent[]
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // https://developers.google.com/calendar/api/v3/reference/events/list
 export type GetListArgs = {
@@ -462,9 +493,11 @@ export type IValidPatchProps = Omit<
 >;
 
 
+
+
 export type IGetEventsArgs = {
-	startDate?: Date;
-	endDate?: Date;
+	startDate?: Dayjs
+	endDate?: Dayjs
 	maxResults?: number;
 	calendarId?: string;
   };

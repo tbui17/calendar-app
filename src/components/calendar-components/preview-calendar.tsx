@@ -5,19 +5,11 @@ import "ag-grid-community/styles/ag-theme-alpine.css";
 import "react-toastify/dist/ReactToastify.css";
 
 import { AxiosError, isAxiosError } from "axios";
-import {
-	CellValueChangedEvent,
-	ColDef,
-	ICellEditorParams,
-	ICellRendererParams,
-} from "ag-grid-community";
+import { CellValueChangedEvent, ColDef, ICellEditorParams, ICellRendererParams } from "ag-grid-community";
 import React, { ChangeEvent, useEffect, useRef, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import { defaultData, defaultData2 } from "@/data/sample-calendar-data";
-import {
-	oneMonthAheadYYYYMMDD,
-	oneMonthBehindYYYYMMDD,
-} from "@/lib/date-functions";
+import { oneMonthAheadYYYYMMDD, oneMonthBehindYYYYMMDD } from "@/lib/date-functions";
 
 import { AgGridReact } from "ag-grid-react";
 import { DatePicker } from "./date-picker";
@@ -28,7 +20,6 @@ import moment from "moment";
 import { useQuery } from "@tanstack/react-query";
 
 export const PreviewCalendarApp = () => {
-	
 	const [startDate, setStartDate] = useState(oneMonthBehindYYYYMMDD());
 	const [endDate, setEndDate] = useState(oneMonthAheadYYYYMMDD());
 	const gridRef = useRef<AgGridReact>(null);
@@ -36,24 +27,23 @@ export const PreviewCalendarApp = () => {
 	const [hasDataFetched, setHasDataFetched] = useState(false);
 	const { data, error, refetch, isFetched, isFetching } = useQuery(
 		["events"],
-		 async () => { // don't need async await with react query
+		async () => {
+			// don't need async await with react query
 			// @ts-ignore
-			const token: string = '12345'//session.data?.access_token;
+			const token: string = "12345"; //session.data?.access_token;
 
 			try {
 				console.log("fetching...");
-				return defaultData2
+				return defaultData2;
 				// return new WebCalendarClient(token).getAllEvents(
 				// 	new Date(startDate),
 				// 	new Date(endDate)
 				// );
-
-
 			} catch (error) {
 				if (isAxiosError(error) && error.response?.status === 401) {
 					console.error("token expired");
 					console.error(error);
-					
+
 					return;
 				}
 				console.error("unknown error");
@@ -65,29 +55,18 @@ export const PreviewCalendarApp = () => {
 			enabled: false,
 			initialData: defaultData,
 			retry: false,
-
 		}
 	);
 
 	useEffect(() => {
-		isFetched && toast("Events retrieved")
-
-
-
-
-
-	},[data])
-
-
-
+		isFetched && toast("Events retrieved");
+	}, [data, isFetched]);
 
 	const handleFetchClick = async () => {
 		// refetch();
-		toast("Cannot fetch data in preview mode.")
+		toast("Cannot fetch data in preview mode.");
 		setHasDataFetched(true);
 	};
-
-
 
 	const handleStartDate = (e: ChangeEvent<HTMLInputElement>) => {
 		setStartDate(e.target.value);
@@ -97,10 +76,8 @@ export const PreviewCalendarApp = () => {
 		setEndDate(e.target.value);
 	};
 
-
-
 	const handleSendClick = async () => {
-		toast("Cannot send events in preview mode.")
+		toast("Cannot send events in preview mode.");
 		// const eventData: ITransformedEvent[] = [];
 		// const model = gridRef.current?.api.getModel();
 		// changedRows.forEach((rowIndex) => {
@@ -133,11 +110,9 @@ export const PreviewCalendarApp = () => {
 		// }
 		// setChangedRows(new Set<number>());
 	};
-	const handleCellValueChanged = (
-		event: CellValueChangedEvent
-	) => {
+	const handleCellValueChanged = (event: CellValueChangedEvent) => {
 		const rowNode = event.node;
-		const rowIndex = rowNode.rowIndex;
+		const { rowIndex } = rowNode;
 		if (rowIndex === null || rowIndex === undefined) {
 			return;
 		}
@@ -145,28 +120,26 @@ export const PreviewCalendarApp = () => {
 	};
 
 	const defaultColumnDefs: ColDef[] = [
-		{ field: "id", sortable: true, filter: true, resizable:true },
-		{ field: "description", sortable: true, filter: true, editable: true, resizable:true },
-		{ field: "summary", sortable: true, filter: true, editable: true, resizable:true },
+		{ field: "id", sortable: true, filter: true, resizable: true },
+		{ field: "description", sortable: true, filter: true, editable: true, resizable: true },
+		{ field: "summary", sortable: true, filter: true, editable: true, resizable: true },
 		{
 			field: "start",
 			sortable: true,
 			filter: "agDateColumnFilter",
-			cellRenderer: (params: ICellRendererParams) =>
-				convertDate(params),
+			cellRenderer: (params: ICellRendererParams) => convertDate(params),
 			editable: true,
 			cellEditor: PickerRendererMUI,
-			resizable:true
+			resizable: true,
 		},
 		{
 			field: "end",
 			sortable: true,
 			filter: "agDateColumnFilter",
-			cellRenderer: (params: ICellRendererParams) =>
-				convertDate(params),
+			cellRenderer: (params: ICellRendererParams) => convertDate(params),
 			editable: true,
 			cellEditor: PickerRendererMUI,
-			resizable:true
+			resizable: true,
 		},
 	];
 
@@ -174,32 +147,23 @@ export const PreviewCalendarApp = () => {
 	const [columnDefs, setColumnDefs] = useState<ColDef[]>(defaultColumnDefs);
 
 	if (error) {
-		throw error as Error | AxiosError
+		throw error as Error | AxiosError;
 	}
 
 	return (
 		<>
 			<div>
-			<div className="pb-4"><p>Choose the date range to fetch calendar data.</p></div>
+				<div className="pb-4">
+					<p>Choose the date range to fetch calendar data.</p>
+				</div>
 				<div className="flex">
-
 					<div className="pb-5 pr-9">
-						<DatePicker
-							id="startDate"
-							value={startDate}
-							onChange={handleStartDate}
-							labelName="from"
-						/>
+						<DatePicker id="startDate" value={startDate} onBlur={handleStartDate} labelName="from" />
 					</div>
 					<div>
-						<DatePicker
-							id="endDate"
-							value={endDate}
-							onChange={handleEndDate}
-							labelName="to"
-						/>
+						<DatePicker id="endDate" value={endDate} onBlur={handleEndDate} labelName="to" />
 					</div>
-					<div className = "pl-96">
+					<div className="pl-96">
 						<p>{isFetching && "Fetching data..."}</p>
 					</div>
 				</div>
@@ -217,7 +181,9 @@ export const PreviewCalendarApp = () => {
 					<button
 						onClick={handleSendClick}
 						type="button"
-						className={`mb-2 mr-2 rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 ${hasDataFetched ? "" : "opacity-50 cursor-not-allowed"}`}
+						className={`mb-2 mr-2 rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 ${
+							hasDataFetched ? "" : "cursor-not-allowed opacity-50"
+						}`}
 						disabled={!hasDataFetched}
 					>
 						Send Data
@@ -225,18 +191,13 @@ export const PreviewCalendarApp = () => {
 				</div>
 			</div>
 
-			<div
-				id="gridContainer"
-				className="ag-theme-alpine-dark"
-				style={{ height: 1000 }}
-			>
+			<div id="gridContainer" className="ag-theme-alpine-dark" style={{ height: 1000 }}>
 				<AgGridReact
 					rowData={data}
 					columnDefs={columnDefs}
 					ref={gridRef}
 					onCellValueChanged={handleCellValueChanged}
 					onGridSizeChanged={(params) => params.api.sizeColumnsToFit()}
-
 				/>
 			</div>
 			<ToastContainer theme="dark" />

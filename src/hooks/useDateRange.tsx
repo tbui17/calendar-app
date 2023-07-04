@@ -1,42 +1,60 @@
+import { ChangeEvent, useEffect, useState } from "react";
+import { MAX_DATE, MIN_DATE } from "@/configs/date-picker-time-limit-configs";
+import dayjs, { Dayjs } from "dayjs";
 import { oneMonthAheadYYYYMMDD, oneMonthBehindYYYYMMDD } from "@/lib/date-functions";
 
-import { useState } from "react";
+export const useDateRange = (
+	initialStartDate = dayjs(oneMonthBehindYYYYMMDD()),
+	initialEndDate = dayjs(oneMonthAheadYYYYMMDD())
+) => {
+	const [startDate, setStartDate] = useState(initialStartDate);
+	const [endDate, setEndDate] = useState(initialEndDate);
 
-export const useDateRange = (initialStartDate: string = oneMonthBehindYYYYMMDD(), initialEndDate: string = oneMonthAheadYYYYMMDD()) => {
-  const [startDate, setStartDate] = useState(initialStartDate);
-  const [endDate, setEndDate] = useState(initialEndDate);
 
+	const setStart = (date: Dayjs|null|undefined) => {
+		if (date) {
+			setStartDate(date);
+		}
+	}
 
-  const validateStartDate = (value: string) => {
-    const end = new Date(endDate);
-    const start = new Date(value);
-    if (start > end) {
-      return new Error("Start date cannot be after end date");
-    }
-    if (start < new Date("2000-01-01")) {
-      return new Error("Start date cannot be before 2000-01-01");
-    }
-    return true;
-  };
-  
-  const validateEndDate = (value: string) => {
-    const start = new Date(startDate);
-    const end = new Date(value);
-    if (end < start) {
-      return new Error("End date cannot be before start date");
-    }
-    if (end > new Date("2100-01-01")) {
-      return new Error("End date cannot be after 2100-01-01");
-    }
-    return true;
-  };
+	const setEnd = (date: Dayjs|null|undefined) => {
+		if (date) {
+			setEndDate(date);
+		}
+	}
+	// TODO: language support for validation messages
+	const validateDates = () => { 
+		const start = startDate
+		const end = endDate
+		const errors: string[] = [];
+		if (start > end) {
+			errors.push("Start date cannot be after end date");
+		}
+		if (end < start) {
+			errors.push("End date cannot be before start date");
+		}
+		if (start < dayjs(MIN_DATE)) {
+			errors.push(`Start date cannot be before ${MIN_DATE}`);
+		}
+		if (start > dayjs(MAX_DATE)) {
+			errors.push(`Start date cannot be after ${MAX_DATE}`);
+		}
+		if (end > dayjs(MAX_DATE)) {
+			errors.push(`End date cannot be after ${MAX_DATE}`);
+		}
+		if (end < dayjs(MIN_DATE)) {
+			errors.push(`End date cannot be before ${MIN_DATE}`);
+		}
+		return errors;
+	};
 
-  return {
-    startDate,
-    endDate,
-    setStartDate,
-    setEndDate,
-    validateStartDate,
-    validateEndDate,
-  };
+	return {
+		startDate,
+		endDate,
+		setStart,
+		setEnd,
+		validateDates,
+		// setStartDateValidated,
+		// setEndDateValidated,
+	};
 };

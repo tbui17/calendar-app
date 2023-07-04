@@ -1,3 +1,5 @@
+//* REMOVE FROM EXCLUDED FILES IN TSCONFIG WHEN DONE
+
 // import { Auth, calendar_v3, google } from "googleapis";
 
 // import { GaxiosResponse } from "gaxios";
@@ -65,7 +67,7 @@
 // 		}
 // 		return events;
 // 	}
-	
+
 // 	transformEvents(events: Schema$Event[]) {
 
 // 		const transformedEvents: ITransformedEvent[] = [];
@@ -73,7 +75,7 @@
 // 			if (!event.id) {
 // 				throw new Error("No event id found.");
 // 			}
-			
+
 // 			const start_string = event.start?.dateTime || event.start?.date;
 // 			const end_string = event.end?.dateTime || event.end?.date;
 // 			let start: Date | null;
