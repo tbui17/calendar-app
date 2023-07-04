@@ -190,8 +190,9 @@ export const CalendarApp = () => {
 			console.error("No reference");
 			return;
 		}
+
 		const conditionList: IChangeTypeSchema[] = ["created", "updated", "deleted"];
-		const results = findRowDataByCondition(gridRef.current, ({ changeType }) => changeType in conditionList); // trying to make a function that returns early when any eligible data has been found will cause ag grid to error out
+		const results = findRowDataByCondition(gridRef.current, ({ changeType }) => conditionList.includes(changeType)); // trying to make a function that returns early when any eligible data has been found will cause ag grid to error out
 		if (results.length === 0) {
 			toast.error(languageService.get("noChangedData"));
 			return;
