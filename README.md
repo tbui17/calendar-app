@@ -2,7 +2,7 @@
 
 **[website link](https://calendar-app-xi.vercel.app/)**
 
-**[preview link](https://calendar-app-xi.vercel.app/preview)**
+**[preview link](https://calendar-app-xi.vercel.app/preview)** (outdated)
 
 Displays calendar events from the Google Calendar API in a table for users to view or update events.
 
