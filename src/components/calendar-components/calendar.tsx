@@ -42,31 +42,10 @@ export const CalendarApp = () => {
 	const gridRef = useRef<AgGridReact<ICalendarRowDataSchema>>(null);
 	const [hasDataFetched, setHasDataFetched] = useState(false);
 	const [isPatching, setIsPatching] = useState(false); // temp
-	const {allMutate} = useMutateCalendar();
+	const { allMutate } = useMutateCalendar();
 	const queryClient = useQueryClient();
-	
+
 	const [buttonHeight, setButtonHeight] = useState<number | null>(null);
-
-	// if(!!dataFromGetCalendar &&
-	// 	dataFromGetCalendar.length === 0 &&
-	// 	!isFetching){
-
-	// 	}
-
-	// useToastEffect({
-	// 	condition:
-	// 		!!dataFromGetCalendar &&
-	// 		dataFromGetCalendar.length === 0 &&
-	// 		!isFetching,
-	// 	toastMessage: "No events found",
-	// 	dependencies: [dataFromGetCalendar, isFetching],
-	// });
-
-	// useToastEffect({
-	// 	condition: !isFetching && !isPatching && !!dataFromGetCalendar?.length,
-	// 	toastMessage: "Events retrieved",
-	// 	dependencies: [dataFromGetCalendar, isFetching],
-	// });
 
 	// handlers
 
@@ -162,14 +141,12 @@ export const CalendarApp = () => {
 			return id;
 		});
 
-		
 		return {
 			postData,
 			deleteData,
 			patchData: preppedData.patchRowData,
-		}
-		
-	}
+		};
+	};
 
 	const handleSendClick = () => {
 		if (!dataFromGetCalendar) {
@@ -184,21 +161,17 @@ export const CalendarApp = () => {
 		}
 
 		const res = convertData(gridRef.current);
-		
-		allMutate(res).then(({successes, errors}) => {
-			if(errors.length){
-				toast.error("Something went wrong with the request(s).")
-				console.error(errors)
+
+		allMutate(res).then(({ successes, errors }) => {
+			if (errors.length) {
+				toast.error("Something went wrong with the request(s).");
+				console.error(errors);
+			} else if (successes.length > 0) {
+				toast.success("Successfully updated events.");
 			}
-			else if(successes.length > 0){
-				toast.success("Successfully updated events.")
-				
-			}
-			queryClient.invalidateQueries() // invalidates ALL queries
-			refetch()
-		})
-		
-		
+			queryClient.invalidateQueries(); // invalidates ALL queries
+			refetch();
+		});
 
 		// // console.log(filterEventMutationsResult);
 
@@ -303,28 +276,6 @@ export const CalendarApp = () => {
 			hide: true,
 		},
 	];
-
-	const [columnDefs] = useState<ColDef[]>(defaultColumnDefs);
-
-	// rendering
-
-	if (isError) {
-		// Check if error is an Axios error
-		if (isAxiosError(error)) {
-			if (error.response?.status === 401) {
-				console.error("Expired token");
-				return (
-					<>
-						<ErrorAccessTokenExpired />
-					</>
-				);
-			}
-		} else if (error instanceof Error) {
-			toast(languageService.get("unknownErrorOccurred"));
-			console.error(error);
-		}
-	}
-
 	// https://legacy.reactjs.org/docs/hooks-faq.html#how-can-i-measure-a-dom-node https://stackoverflow.com/questions/60881446/receive-dimensions-of-element-via-getboundingclientrect-in-react https://epicreact.dev/why-you-shouldnt-put-refs-in-a-dependency-array/ https://stackoverflow.com/questions/60476155/is-it-safe-to-use-ref-current-as-useeffects-dependency-when-ref-points-to-a-dom
 	const handleRect = useCallback((node: HTMLInputElement) => {
 		if (node) {
@@ -333,6 +284,10 @@ export const CalendarApp = () => {
 			// setButtonHeight(node.offsetHeight - 10);
 		}
 	}, []);
+
+	const [columnDefs] = useState<ColDef[]>(defaultColumnDefs);
+
+	// rendering
 
 	return (
 		<>

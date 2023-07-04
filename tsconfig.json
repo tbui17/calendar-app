@@ -35,5 +35,5 @@
     "noErrorTruncation": true
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules",".next"]
+  "exclude": ["node_modules", ".next", "src/lib/calendar-client.ts"]
 }
