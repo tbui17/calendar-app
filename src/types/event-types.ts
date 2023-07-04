@@ -1,5 +1,6 @@
 import { isoStringRegex, yyyymmddRegex } from "@/regexes/regexes";
 
+import { Dayjs } from "dayjs";
 import { O } from "ts-toolbelt";
 import { calendar_v3 } from "googleapis";
 import { z } from "zod";
@@ -495,8 +496,8 @@ export type IValidPatchProps = Omit<
 
 
 export type IGetEventsArgs = {
-	startDate?: Date;
-	endDate?: Date;
+	startDate?: Dayjs
+	endDate?: Dayjs
 	maxResults?: number;
 	calendarId?: string;
   };

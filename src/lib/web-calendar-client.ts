@@ -5,7 +5,7 @@ import {
 	IDateTimeEventData,
 	IGetEventsArgs,
 	IGetResponse,
-	IValidPatchProps,
+	IValidPatchProps as IValidEventMutationProps,
 } from "../types/event-types";
 import axios, { AxiosInstance, AxiosResponse } from "axios";
 import { oneMonthAhead, oneMonthBehind } from "@/lib/date-functions";
@@ -72,13 +72,13 @@ export class WebCalendarClient {
 	 * @throws {AxiosError}
 	 * @returns
 	 */
-	async updateEvent<T extends IValidPatchProps & { id: string }>(event: T) {
+	async updateEvent<T extends IValidEventMutationProps & { id: string }>(event: T) {
 		const { id, ...data } = event;
 
 		const res = await this.instance.patch<
 			any,
 			AxiosResponse<calendar_v3.Schema$Event>,
-			IValidPatchProps
+			IValidEventMutationProps
 		>(
 			`https://www.googleapis.com/calendar/v3/calendars/primary/events/${id}`,
 			data
@@ -92,11 +92,11 @@ export class WebCalendarClient {
 	 * @throws {AxiosError}
 	 * @returns 
 	 */
-	async createEvent<T extends IValidPatchProps>(event:T){
+	async createEvent<T extends IValidEventMutationProps>(event:T){
 		return this.instance.post<
 		any,
 		AxiosResponse<calendar_v3.Schema$Event>,
-		IValidPatchProps
+		IValidEventMutationProps
 	>("https://www.googleapis.com/calendar/v3/calendars/primary/events", event)
 	}
 
@@ -107,7 +107,9 @@ export class WebCalendarClient {
 	 * @returns 
 	 */
 	async deleteEvent(id:string){
-		return this.instance.delete(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${id}`)
+		return this.instance.delete<
+		calendar_v3.Schema$Event
+	>(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${id}`)
 	}
 
 

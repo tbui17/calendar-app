@@ -5,43 +5,47 @@ import "ag-grid-community/styles/ag-theme-alpine.css";
 import "react-toastify/dist/ReactToastify.css";
 
 import { CellValueChangedEvent, ColDef, GridReadyEvent, ICellRendererParams, NewValueParams } from "ag-grid-community";
-import { ICalendarRowDataSchema, RowDataFilterModel } from "@/types/row-data-types";
-import React, { FormEvent, useRef, useState } from "react";
+import { MAX_DATE, MIN_DATE } from "@/configs/date-picker-time-limit-configs";
+import React, { FormEvent, useCallback, useMemo, useRef, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import { filterPostPatchDelete, getRowData } from "@/transforms/filterPostPatchDelete";
 
 import { AgGridReact } from "ag-grid-react";
 import BaseButton from "../base-button";
-import { DatePicker } from "./date-picker";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import ErrorAccessTokenExpired from "../error-access-token-expired";
+import { ICalendarRowDataSchema } from "@/types/row-data-types";
 import PickerRendererMUI from "./picker-renderer-mui";
 import { convertContainerData } from "@/transforms/convert-container-data";
 import { convertDate } from "@/lib/convert-date";
+import dayjs from "dayjs";
 import { isAxiosError } from "axios";
 import { languageService } from "@/lang-service/language-service";
 import { useDateRange } from "@/hooks/useDateRange";
 import { useGetCalendar } from "@/hooks/useGetCalendar";
-import { usePatchCalendar } from "@/hooks/usePatchCalendar";
+import { useMutateCalendar } from "@/hooks/usePatchCalendar";
 import { useQueryClient } from "@tanstack/react-query";
 
 export const CalendarApp = () => {
 	// hooks
-	const { endDate, validateDates, startDate, setEndDateValidated, setStartDateValidated } = useDateRange();
+	const { endDate, startDate, setStart, setEnd, validateDates } = useDateRange();
 	const {
 		data: dataFromGetCalendar,
-		isFetching,
+
 		refetch,
 		isError,
 		error,
 	} = useGetCalendar({
-		startDate: new Date(startDate),
-		endDate: new Date(endDate),
+		startDate: startDate,
+		endDate: endDate,
 	});
 	const gridRef = useRef<AgGridReact<ICalendarRowDataSchema>>(null);
 	const [hasDataFetched, setHasDataFetched] = useState(false);
 	const [isPatching, setIsPatching] = useState(false); // temp
-	const updateMutation = usePatchCalendar();
+	const {allMutate} = useMutateCalendar();
 	const queryClient = useQueryClient();
+	
+	const [buttonHeight, setButtonHeight] = useState<number | null>(null);
 
 	// if(!!dataFromGetCalendar &&
 	// 	dataFromGetCalendar.length === 0 &&
@@ -74,17 +78,17 @@ export const CalendarApp = () => {
 			changeType: "created",
 			start: new Date(),
 			end: new Date(),
-			dateType: dateType
+			dateType: dateType,
 		};
 		gridRef.current?.api.applyTransaction({ add: [rowData] });
-	}
+	};
 
 	const handleCreateDateEvent = () => {
-		handleCreateEvent("date")
+		handleCreateEvent("date");
 	};
 
 	const handleCreateDateTimeEvent = () => {
-		handleCreateEvent("dateTime")
+		handleCreateEvent("dateTime");
 	};
 
 	const handleSubmitDate = (e: FormEvent<HTMLFormElement>) => {
@@ -95,22 +99,21 @@ export const CalendarApp = () => {
 	};
 
 	function handleCellChange(e: CellValueChangedEvent<ICalendarRowDataSchema>) {
-		const {data} = e
-		data.changeType === "none" && gridRef.current!.api.getRowNode(data.id)?.setDataValue("changeType", "updated")
-		
+		const { data } = e;
+		data.changeType === "none" && gridRef.current!.api.getRowNode(data.id)?.setDataValue("changeType", "updated");
 	}
 
 	const handleDelete = () => {
 		const selectedNodes = gridRef.current!.api.getSelectedNodes();
 		const deleted: ICalendarRowDataSchema[] = [];
-		selectedNodes.forEach(({data}) => {
+		selectedNodes.forEach(({ data }) => {
 			if (data) {
 				const copy = { ...data };
 				copy.changeType = data.changeType === "created" ? "fakedeleted" : "deleted";
 				deleted.push(copy);
 			}
 		});
-		// setDeletedData((prev) => { // potential edge case where user deletes then immediately sends data, not all data is sent because of async updates?
+		// setDeletedData((prev) => { // ? potential edge case where user deletes then immediately sends data, not all data is sent because of async updates?
 		// 	return [...prev, ...deleted]
 		// });
 
@@ -118,7 +121,7 @@ export const CalendarApp = () => {
 	};
 
 	const handleFetchData = () => {
-		toast.dismiss(); // workaround permanently stuck in pending if toast gets queued from exceeding toast limit
+		toast.dismiss(); // this is a workaround. if a pending toast is queued after exceeding toast limit, it will permanently stay in pending
 		const promise = refetch().then((res) => {
 			if (res.data?.length === 0) {
 				throw new Error("No events found.");
@@ -144,41 +147,58 @@ export const CalendarApp = () => {
 				},
 			},
 		});
-		setHasDataFetched(true);
+		// * !hasDataFetched && setHasDataFetched(true); user can create data before fetching and this would be valid
 	};
 
-	const handleSendClick = async () => {
-		if (!dataFromGetCalendar) {
-			toast(languageService.get("noFetchData"));
-			return;
-		}
-
-		// const filterEventMutationsResult = filterEventMutationsSingle(
-		// 	dataFromGetCalendar,
-		// 	"updated"
-		// );
-		// if (filterEventMutationsResult.length === 0) {
-		// 	toast("No modified events.");
-		// 	return;
-		// }
-		if (!gridRef.current) {
-			console.debug("No reference");
-			return;
-		}
-
-		const rowData = getRowData(gridRef.current);
+	const convertData = (grid: AgGridReact<ICalendarRowDataSchema>) => {
+		const rowData = getRowData(grid);
 
 		const container = filterPostPatchDelete(rowData);
 		const preppedData = convertContainerData(container);
 		const postData = preppedData.postRowData.map(({ id, ...item }) => {
 			return item;
 		});
-		const deleteData = preppedData.deleteRowData.map(({ id, ...item }) => {
+		const deleteData = preppedData.deleteRowData.map(({ id }) => {
 			return id;
 		});
-		
 
-		// TODO: send data to react query
+		
+		return {
+			postData,
+			deleteData,
+			patchData: preppedData.patchRowData,
+		}
+		
+	}
+
+	const handleSendClick = () => {
+		if (!dataFromGetCalendar) {
+			// ? any possible edge cases where internal data in ag grid can be null while dataFromGetCalendar is not null?
+			toast.error(languageService.get("noFetchData"));
+			return;
+		}
+
+		if (!gridRef.current) {
+			console.error("No reference");
+			return;
+		}
+
+		const res = convertData(gridRef.current);
+		
+		allMutate(res).then(({successes, errors}) => {
+			if(errors.length){
+				toast.error("Something went wrong with the request(s).")
+				console.error(errors)
+			}
+			else if(successes.length > 0){
+				toast.success("Successfully updated events.")
+				
+			}
+			queryClient.invalidateQueries() // invalidates ALL queries
+			refetch()
+		})
+		
+		
 
 		// // console.log(filterEventMutationsResult);
 
@@ -210,7 +230,7 @@ export const CalendarApp = () => {
 		const filter = gridRef.current!.api.getFilterInstance("changeType");
 
 		filter?.setModel({
-			// notcontains should cover "deleted" and "fakedeleted". fakedeleted not camelCase for this reason. don't need enterprise version
+			//  notcontains should cover "deleted" and "fakedeleted". fakedeleted not camelCase for this reason. don't need enterprise version
 			type: "notContains",
 			filter: "deleted",
 			filterType: "text",
@@ -221,13 +241,21 @@ export const CalendarApp = () => {
 	// table configs
 
 	const defaultColumnDefs: ColDef[] = [
-		{ field: "id", sortable: true, filter: true, resizable: true, checkboxSelection: true, lockPosition: true },
+		{
+			field: "id",
+			sortable: true,
+			filter: true,
+			resizable: true,
+			checkboxSelection: true,
+			lockPosition: true,
+		},
 		{
 			field: "summary",
 			sortable: true,
 			filter: true,
 			editable: true,
 			resizable: true,
+			lockVisible: true,
 		},
 		{
 			field: "description",
@@ -235,9 +263,10 @@ export const CalendarApp = () => {
 			filter: true,
 			editable: true,
 			resizable: true,
+			lockVisible: true,
 		},
 		{
-			field: "start",
+			field: "start", // ?
 			sortable: true,
 			filter: "agDateColumnFilter",
 			cellRenderer: (params: ICellRendererParams<ICalendarRowDataSchema>) => {
@@ -256,6 +285,7 @@ export const CalendarApp = () => {
 				}
 			},
 			resizable: true,
+			lockVisible: true,
 		},
 		{
 			field: "end",
@@ -265,6 +295,7 @@ export const CalendarApp = () => {
 			editable: true,
 			cellEditor: PickerRendererMUI,
 			resizable: true,
+			lockVisible: true,
 		},
 		{
 			field: "changeType",
@@ -294,34 +325,47 @@ export const CalendarApp = () => {
 		}
 	}
 
+	// https://legacy.reactjs.org/docs/hooks-faq.html#how-can-i-measure-a-dom-node https://stackoverflow.com/questions/60881446/receive-dimensions-of-element-via-getboundingclientrect-in-react https://epicreact.dev/why-you-shouldnt-put-refs-in-a-dependency-array/ https://stackoverflow.com/questions/60476155/is-it-safe-to-use-ref-current-as-useeffects-dependency-when-ref-points-to-a-dom
+	const handleRect = useCallback((node: HTMLInputElement) => {
+		if (node) {
+			const rect = node.getBoundingClientRect();
+			rect && setButtonHeight(rect.height - 10);
+			// setButtonHeight(node.offsetHeight - 10);
+		}
+	}, []);
+
 	return (
 		<>
-			<form id="fetchDataDateRangeForm" onSubmit={handleSubmitDate} className="mb-8">
-				<legend className="mb-4">{languageService.get("dateRangePrompt")}</legend>
+			<form id="fetchDataDateRangeForm" onSubmit={handleSubmitDate} className="mb-8 ml-6">
+				<legend className="mb-6">{languageService.get("dateRangePrompt")}</legend>
 				<div className="flex">
-					<div className="pb-5 pr-9">
+					<div className="mt-auto pr-9">
 						<DatePicker
-							id="startDate"
-							value={startDate}
-							onChange={setStartDateValidated}
-							labelName={`${languageService.get("from")}: `}
-							readOnly={false}
+							value={dayjs(startDate)}
+							label={languageService.get("from")}
+							maxDate={endDate}
+							minDate={dayjs(MIN_DATE)}
+							onChange={setStart}
 						/>
 					</div>
-					<div>
+					<div className="mt-auto">
 						<DatePicker
-							id="endDate"
-							value={endDate}
-							onChange={setEndDateValidated}
-							labelName={`${languageService.get("to")}: `}
-							readOnly={false}
+							value={dayjs(endDate)}
+							label={languageService.get("to")}
+							maxDate={dayjs(MAX_DATE)}
+							minDate={startDate}
+							onChange={setEnd}
+							ref={handleRect}
 						/>
 					</div>
-					<div className="-translate-y-2 pl-7">
+					<div className="mt-auto pl-11">
 						<BaseButton
 							buttonText={languageService.get("fetchDataButtonText")}
 							id="fetchData"
 							type="submit"
+							style={{
+								height: buttonHeight ? buttonHeight : "auto",
+							}}
 						/>
 					</div>
 				</div>
@@ -329,38 +373,32 @@ export const CalendarApp = () => {
 
 			<div className="pl-3 pr-3">
 				<section className="flex">
-					<button
+					<BaseButton
+						buttonText={languageService.get("sendDataButton")}
+						id="sendDataButton"
+						// disableCondition={!hasDataFetched}
 						onClick={handleSendClick}
-						type="button"
-						className={`btn-pressed mb-2 mr-2 rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 ${
-							hasDataFetched ? "" : "cursor-not-allowed opacity-50"
-						}`}
-						disabled={!hasDataFetched}
-					>
-						{languageService.get("sendDataButton")}
-					</button>
+					/>
 					<BaseButton
 						buttonText={languageService.get("createDateEvent")}
-						id="createDateData"
-						disableCondition={!hasDataFetched}
+						id="createDateButton"
+						// disableCondition={!hasDataFetched}
 						onClick={handleCreateDateEvent}
 					/>
 					<BaseButton
 						buttonText={languageService.get("createDateTimeEvent")}
-						id="createDateTimeData"
-						disableCondition={!hasDataFetched}
+						id="createDateTimeButton"
+						// disableCondition={!hasDataFetched}
 						onClick={handleCreateDateTimeEvent}
 					/>
 					<BaseButton
 						buttonText={languageService.get("deleteSelectedEvents")}
-						id="createDateTimeData"
-						disableCondition={!hasDataFetched}
+						id="deleteSelectedButton"
+						// disableCondition={!hasDataFetched}
 						onClick={handleDelete}
 					/>
 				</section>
 			</div>
-
-
 
 			<div id="gridContainer" className="ag-theme-alpine-dark" style={{ height: 1000 }}>
 				<AgGridReact
