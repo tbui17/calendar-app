@@ -1,28 +1,21 @@
-import { DEFAULT_CALENDAR_ID, DEFAULT_END_DATE, DEFAULT_MAX_QUERY_RESULTS, DEFAULT_START_DATE } from "@/configs/default-calendar-client-configs";
 import {
-	ICalendarEvent,
-	IDateEventData,
-	IDateTimeEventData,
-	IGetEventsArgs,
-	IGetResponse,
-	IValidPatchProps as IValidEventMutationProps,
-} from "../types/event-types";
+	DEFAULT_CALENDAR_ID,
+	DEFAULT_END_DATE,
+	DEFAULT_MAX_QUERY_RESULTS,
+	DEFAULT_START_DATE,
+} from "@/configs/default-calendar-client-configs";
 import axios, { AxiosInstance, AxiosResponse } from "axios";
-import { oneMonthAhead, oneMonthBehind } from "@/lib/date-functions";
+import { IGetEventsArgs, IGetResponse, IValidPatchProps as IValidEventMutationProps } from "../types/event-types";
+import { DateEventParser, IGoogleEventParser, IParsedGetResponse } from "./parsers";
 
-import { DateEventParser } from "./parsers";
-import { IGoogleEventParser } from "./parsers";
-import { IParsedGetResponse } from "./parsers";
-import {
-	calendarRowDataSchema,
-} from "@/types/row-data-types";
 import { calendar_v3 } from "googleapis";
-import { z } from "zod";
 
 // https://developers.google.com/calendar/api/v3/reference/events/list
 // https://stackoverflow.com/questions/22939130/when-should-i-use-arrow-functions-in-ecmascript-6
 export class WebCalendarClient {
-	// TODO: add token refresh after fixing backend
+	// TODO: after finishing frontend, change this to hit own API endpoints that will forward requests to google
+	// TODO: move token handling to backend, add CSRF token on client, put token in HTTPS-only cookie, use OAuth2 and implement token refreshing. remove firebase and replace with supabase or vercel postgres. if there is a provider for supabase to automatically handle token and use management, use it.
+	// TODO: duplicate all error validation logic on backend and sanitize inputs with Zod schema
 
 	private instance: AxiosInstance;
 	constructor(access_token: string) {
@@ -49,20 +42,19 @@ export class WebCalendarClient {
 		}: IGetEventsArgs = {},
 		{ parser = new DateEventParser() }: IAddOnArgs = {}
 	) {
-		const res = await this.instance.get<
-			any,
-			AxiosResponse<IGetResponse>,
-			IGetEventsArgs
-		>("https://www.googleapis.com/calendar/v3/calendars/primary/events", {
-			params: {
-				calendarId,
-				timeMin: startDate.toISOString(),
-				timeMax: endDate.toISOString(),
-				maxResults,
-				singleEvents: false, // Whether to expand recurring events into instances and only return single one-off events and instances of recurring events, but not the underlying recurring events themselves. Optional. The default is False.
-			},
-		});
-		
+		const res = await this.instance.get<any, AxiosResponse<IGetResponse>, IGetEventsArgs>(
+			"https://www.googleapis.com/calendar/v3/calendars/primary/events",
+			{
+				params: {
+					calendarId,
+					timeMin: startDate.toISOString(),
+					timeMax: endDate.toISOString(),
+					maxResults,
+					singleEvents: false, // Whether to expand recurring events into instances and only return single one-off events and instances of recurring events, but not the underlying recurring events themselves. Optional. The default is False.
+				},
+			}
+		);
+
 		return parser.parseEvents(res.data.items);
 	}
 
@@ -75,11 +67,7 @@ export class WebCalendarClient {
 	async updateEvent<T extends IValidEventMutationProps & { id: string }>(event: T) {
 		const { id, ...data } = event;
 
-		const res = await this.instance.patch<
-			any,
-			AxiosResponse<calendar_v3.Schema$Event>,
-			IValidEventMutationProps
-		>(
+		const res = await this.instance.patch<any, AxiosResponse<calendar_v3.Schema$Event>, IValidEventMutationProps>(
 			`https://www.googleapis.com/calendar/v3/calendars/primary/events/${id}`,
 			data
 		);
@@ -87,37 +75,31 @@ export class WebCalendarClient {
 	}
 
 	/**
-	 * 
-	 * @param event 
+	 *
+	 * @param event
 	 * @throws {AxiosError}
-	 * @returns 
+	 * @returns
 	 */
-	async createEvent<T extends IValidEventMutationProps>(event:T){
-		return this.instance.post<
-		any,
-		AxiosResponse<calendar_v3.Schema$Event>,
-		IValidEventMutationProps
-	>("https://www.googleapis.com/calendar/v3/calendars/primary/events", event)
+	async createEvent<T extends IValidEventMutationProps>(event: T) {
+		return this.instance.post<any, AxiosResponse<calendar_v3.Schema$Event>, IValidEventMutationProps>(
+			"https://www.googleapis.com/calendar/v3/calendars/primary/events",
+			event
+		);
 	}
 
 	/**
-	 * 
-	 * @param id 
+	 *
+	 * @param id
 	 * @throws {AxiosError}
-	 * @returns 
+	 * @returns
 	 */
-	async deleteEvent(id:string){
-		return this.instance.delete<
-		calendar_v3.Schema$Event
-	>(`https://www.googleapis.com/calendar/v3/calendars/primary/events/${id}`)
+	async deleteEvent(id: string) {
+		return this.instance.delete<calendar_v3.Schema$Event>(
+			`https://www.googleapis.com/calendar/v3/calendars/primary/events/${id}`
+		);
 	}
-
-
 }
 
 type IAddOnArgs = {
 	parser?: IGoogleEventParser<IParsedGetResponse>;
 };
-
-
-

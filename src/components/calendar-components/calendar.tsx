@@ -6,6 +6,7 @@ import "react-toastify/dist/ReactToastify.css";
 
 import { MAX_DATE, MIN_DATE } from "@/configs/date-picker-time-limit-configs";
 import { filterPostPatchDelete, getRowData } from "@/transforms/filterPostPatchDelete";
+import { DeletedItemsTracker, ICalendarRowDataSchema, IChangeTypeSchema } from "@/types/row-data-types";
 import { CellValueChangedEvent, ColDef, GridReadyEvent, ICellRendererParams, NewValueParams } from "ag-grid-community";
 import { FormEvent, useCallback, useRef, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
@@ -16,10 +17,13 @@ import { useMutateCalendar } from "@/hooks/usePatchCalendar";
 import { languageService } from "@/lang-service/language-service";
 import { convertDate } from "@/lib/convert-date";
 import { convertContainerData } from "@/transforms/convert-container-data";
-import { ICalendarRowDataSchema } from "@/types/row-data-types";
+import { findRowDataByCondition } from "@/transforms/find-row-data-by-condition";
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { useQueryClient } from "@tanstack/react-query";
 import { AgGridReact } from "ag-grid-react";
+import { AxiosError } from "axios";
 import dayjs from "dayjs";
 import BaseButton from "../base-button";
 import PickerRendererMUI from "./picker-renderer-mui";
@@ -29,23 +33,35 @@ export const CalendarApp = () => {
 	const { endDate, startDate, setStart, setEnd, validateDates } = useDateRange();
 	const {
 		data: dataFromGetCalendar,
-
 		refetch,
-		isError,
 		error,
 	} = useGetCalendar({
 		startDate: startDate,
 		endDate: endDate,
-	});
+	}); // careful, dataFromGetCalendar is separate from data in table
 	const gridRef = useRef<AgGridReact<ICalendarRowDataSchema>>(null);
-	const [hasDataFetched, setHasDataFetched] = useState(false);
-	const [isPatching, setIsPatching] = useState(false); // temp
+
 	const { allMutate } = useMutateCalendar();
 	const queryClient = useQueryClient();
 
 	const [buttonHeight, setButtonHeight] = useState<number | null>(null);
 
+	const [deletedItems, setDeletedItems] = useState<DeletedItemsTracker[]>([]);
+	const deletedItemCount = deletedItems.length;
+
+	// TODO: refactor
+	// 1. combine useMutateCalendar and useGetCalendar into one hook, access individual hooks via destructuring
+	// 2. move query client into hook
+	// 3. move all transforms and app logic into hooks. component should only have view logic like buttonHeight.
+	// 4. column defs ok to keep here
+	// 5. disable buttons while updates are pending.
+	// 6. mixing dayjs and date should be fine for now because all the dayjs objects are normalized to date objects by the cell editor but bugs will be encountered if event is created programmatically. refactor any dates into dayjs and check functionality
+
 	// handlers
+
+	if (error instanceof AxiosError && error.response?.status === 401) {
+		throw error;
+	}
 
 	const handleCreateEvent = (dateType: "date" | "dateTime") => {
 		const rowData: ICalendarRowDataSchema = {
@@ -76,32 +92,53 @@ export const CalendarApp = () => {
 	};
 
 	function handleCellChange(e: CellValueChangedEvent<ICalendarRowDataSchema>) {
-		const { data } = e;
+		// only external programmatic and UI changes trigger handleCellChange, this does not cause infinite loop
+		const { data, column } = e;
+		if (column.getColId() === "changeType") {
+			return;
+		}
 		data.changeType === "none" && gridRef.current!.api.getRowNode(data.id)?.setDataValue("changeType", "updated");
 	}
 
-	const handleDelete = () => {
+	const handleDeleteClick = async () => {
 		const selectedNodes = gridRef.current!.api.getSelectedNodes();
 		const deleted: ICalendarRowDataSchema[] = [];
+		const newDeletedDataList: DeletedItemsTracker[] = [];
 		selectedNodes.forEach(({ data }) => {
 			if (data) {
 				const copy = { ...data };
-				copy.changeType = data.changeType === "created" ? "fakedeleted" : "deleted";
+				const newDeletedData: DeletedItemsTracker = {
+					id: copy.id,
+					currentChangeType: data.changeType === "created" ? "deletedFromCreated" : "deleted",
+					previousChangeType: copy.changeType,
+				};
+				copy.changeType = data.changeType === "created" ? "deletedFromCreated" : "deleted";
+				newDeletedDataList.push(newDeletedData);
 				deleted.push(copy);
 			}
 		});
-		// setDeletedData((prev) => { // ? potential edge case where user deletes then immediately sends data, not all data is sent because of async updates?
-		// 	return [...prev, ...deleted]
-		// });
+		if (deleted.length === 0) {
+			return;
+		}
 
-		deleted.length !== 0 && gridRef.current!.api.applyTransaction({ update: deleted });
+		setDeletedItems([...deletedItems, ...newDeletedDataList]);
+		gridRef.current!.api.applyTransaction({ update: deleted });
+		gridRef.current!.api.deselectAll();
+	};
+
+	const handleRestoreDeletedItemsClick = () => {
+		deletedItems.forEach((item) => {
+			gridRef.current!.api.getRowNode(item.id)?.setDataValue("changeType", item.previousChangeType); // small bug, setting changeType to "none" triggers onCellChange
+		});
+		setDeletedItems([]);
 	};
 
 	const handleFetchData = () => {
+		setDeletedItems([]);
 		toast.dismiss(); // this is a workaround. if a pending toast is queued after exceeding toast limit, it will permanently stay in pending
 		const promise = refetch().then((res) => {
 			if (res.data?.length === 0) {
-				throw new Error("No events found.");
+				return Promise.reject(new Error("No events found."));
 			}
 			return res;
 		});
@@ -112,6 +149,7 @@ export const CalendarApp = () => {
 			error: {
 				render: (props) => {
 					const err = props.data;
+
 					if (err instanceof Error) {
 						if (err.message === "Request failed with status code 401") {
 							throw err;
@@ -124,7 +162,7 @@ export const CalendarApp = () => {
 				},
 			},
 		});
-		// * !hasDataFetched && setHasDataFetched(true); user can create data before fetching and this would be valid
+		// * !hasDataFetched && setHasDataFetched(true); // user can create data before fetching and this would be valid
 	};
 
 	const convertData = (grid: AgGridReact<ICalendarRowDataSchema>) => {
@@ -147,17 +185,16 @@ export const CalendarApp = () => {
 	};
 
 	const handleSendClick = () => {
-		if (!dataFromGetCalendar) {
-			// ? any possible edge cases where internal data in ag grid can be null while dataFromGetCalendar is not null?
-			toast.error(languageService.get("noFetchData"));
-			return;
-		}
-
 		if (!gridRef.current) {
 			console.error("No reference");
 			return;
 		}
-
+		const conditionList: IChangeTypeSchema[] = ["created", "updated", "deleted"];
+		const results = findRowDataByCondition(gridRef.current, (event) => event.changeType in conditionList);
+		if (results.length === 0) {
+			toast.error(languageService.get("noChangedData"));
+			return;
+		}
 		const res = convertData(gridRef.current);
 
 		allMutate(res).then(({ successes, errors }) => {
@@ -170,38 +207,13 @@ export const CalendarApp = () => {
 			queryClient.invalidateQueries(); // invalidates ALL queries
 			refetch();
 		});
-
-		// // console.log(filterEventMutationsResult);
-
-		// const filteredResults = filterAndTransformDateAndDateEvents(
-		// 	filterEventMutationsResult
-		// );
-		// // console.log(filteredResults)
-		// const eventsCombined: IOutboundEventSchema[] = [
-		// 	...filteredResults.dateEvents,
-		// 	...filteredResults.dateTimeEvents,
-		// ];
-
-		// // console.log(eventsCombined)
-		// const promises = eventsCombined.map((item) => {
-		// 	return updateMutation.mutateAsync(item);
-		// });
-		// await Promise.all(promises)
-		// queryClient.invalidateQueries({
-		// 	queryKey: ["events"],
-
-		// })
-		// setIsPatching(true);
-		// // await handleFetchClick(); // TODO: redundant?
-		// toast("Success");
-		// setIsPatching(false);
 	};
 
 	const gridReadyHandler = (params: GridReadyEvent) => {
 		const filter = gridRef.current!.api.getFilterInstance("changeType");
 
 		filter?.setModel({
-			//  notcontains should cover "deleted" and "fakedeleted". fakedeleted not camelCase for this reason. don't need enterprise version
+			//  notcontains should cover "deleted" and "deletedFromCreated".
 			type: "notContains",
 			filter: "deleted",
 			filterType: "text",
@@ -289,43 +301,62 @@ export const CalendarApp = () => {
 
 	return (
 		<>
-			<form id="fetchDataDateRangeForm" onSubmit={handleSubmitDate} className="mb-8 ml-6">
-				<legend className="mb-6">{languageService.get("dateRangePrompt")}</legend>
-				<div className="flex">
-					<div className="mt-auto pr-9">
-						<DatePicker
-							value={dayjs(startDate)}
-							label={languageService.get("from")}
-							maxDate={endDate}
-							minDate={dayjs(MIN_DATE)}
-							onChange={setStart}
-						/>
+			<div className="flex items-center justify-between">
+				<form id="fetchDataDateRangeForm" onSubmit={handleSubmitDate} className="mb-8 ml-6">
+					<legend className="mb-6">{languageService.get("dateRangePrompt")}</legend>
+					<div className="flex items-center justify-between gap-8">
+						<div>
+							<DatePicker
+								value={dayjs(startDate)}
+								label={languageService.get("from")}
+								maxDate={endDate}
+								minDate={dayjs(MIN_DATE)}
+								onChange={setStart}
+							/>
+						</div>
+						<div>
+							<DatePicker
+								value={dayjs(endDate)}
+								label={languageService.get("to")}
+								maxDate={dayjs(MAX_DATE)}
+								minDate={startDate}
+								onChange={setEnd}
+								ref={handleRect}
+							/>
+						</div>
+						<div>
+							<BaseButton
+								buttonText={languageService.get("fetchDataButtonText")}
+								id="fetchData"
+								type="submit"
+								style={{
+									height: buttonHeight ? buttonHeight : "auto",
+								}}
+							/>
+						</div>
 					</div>
-					<div className="mt-auto">
-						<DatePicker
-							value={dayjs(endDate)}
-							label={languageService.get("to")}
-							maxDate={dayjs(MAX_DATE)}
-							minDate={startDate}
-							onChange={setEnd}
-							ref={handleRect}
-						/>
+				</form>
+				{deletedItemCount > 0 && (
+					<div data-id="delete-container" className="mt-5">
+						<Card>
+							<CardContent>
+								<div className="mb-5"># of deleted items to sync: {deletedItemCount}</div>
+								<div>
+									<BaseButton
+										buttonText={languageService.get("restoreDeletedItems")}
+										id="restoreDeletedItemsButton"
+										onClick={handleRestoreDeletedItemsClick}
+									/>
+								</div>
+							</CardContent>
+						</Card>
 					</div>
-					<div className="mt-auto pl-11">
-						<BaseButton
-							buttonText={languageService.get("fetchDataButtonText")}
-							id="fetchData"
-							type="submit"
-							style={{
-								height: buttonHeight ? buttonHeight : "auto",
-							}}
-						/>
-					</div>
-				</div>
-			</form>
+				)}
+				<div data-id="top-spacer"></div>
+			</div>
 
-			<div className="pl-3 pr-3">
-				<section className="flex">
+			<div className="mb-5 pl-3">
+				<section className="flex space-x-11">
 					<BaseButton
 						buttonText={languageService.get("sendDataButton")}
 						id="sendDataButton"
@@ -348,7 +379,7 @@ export const CalendarApp = () => {
 						buttonText={languageService.get("deleteSelectedEvents")}
 						id="deleteSelectedButton"
 						// disableCondition={!hasDataFetched}
-						onClick={handleDelete}
+						onClick={handleDeleteClick}
 					/>
 				</section>
 			</div>
