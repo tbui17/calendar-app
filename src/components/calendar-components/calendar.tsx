@@ -38,7 +38,7 @@ export const CalendarApp = () => {
 	} = useGetCalendar({
 		startDate: startDate,
 		endDate: endDate,
-	}); // careful, dataFromGetCalendar is separate from data in table
+	}); // care, dataFromGetCalendar is separate from data in table
 	const gridRef = useRef<AgGridReact<ICalendarRowDataSchema>>(null);
 
 	const { allMutate } = useMutateCalendar();
@@ -191,7 +191,7 @@ export const CalendarApp = () => {
 			return;
 		}
 		const conditionList: IChangeTypeSchema[] = ["created", "updated", "deleted"];
-		const results = findRowDataByCondition(gridRef.current, (event) => event.changeType in conditionList);
+		const results = findRowDataByCondition(gridRef.current, ({ changeType }) => changeType in conditionList); // trying to make a function that returns early when any eligible data has been found will cause ag grid to error out
 		if (results.length === 0) {
 			toast.error(languageService.get("noChangedData"));
 			return;
@@ -202,7 +202,7 @@ export const CalendarApp = () => {
 			if (errors.length) {
 				toast.error("Something went wrong with the request(s).");
 				console.error(errors);
-			} else if (successes.length > 0) {
+			} else if (successes.length) {
 				toast.success("Successfully updated events.");
 			}
 			queryClient.invalidateQueries(); // invalidates ALL queries
