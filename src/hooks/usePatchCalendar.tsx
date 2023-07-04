@@ -1,10 +1,10 @@
-import { AxiosError, AxiosResponse } from "axios";
 import { IGooglePostEvent, IOutboundEvent } from "@/types/event-types";
-import { UseMutationResult, useMutation } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
+import { AxiosError, AxiosResponse } from "axios";
 
-import { Session } from "next-auth";
 import { WebCalendarClient } from "@/lib/web-calendar-client";
 import { calendar_v3 } from "googleapis";
+import { Session } from "next-auth";
 import { useSession } from "next-auth/react";
 
 type IMutationData = {
@@ -74,13 +74,33 @@ export const useMutateCalendar = () => {
 		}
 	);
 
-	const deleteMutation = useMutation((data: string) => {
-		return client.deleteEvent(data);
-	});
+	const deleteMutation = useMutation(
+		(data: string) => {
+			return client.deleteEvent(data);
+		},
+		{
+			retry(failureCount, error) {
+				if (error instanceof AxiosError && error.response?.status === 403) {
+					return failureCount < 5;
+				}
+				return false;
+			},
+		}
+	);
 
-	const postMutation = useMutation((data: IGooglePostEvent) => {
-		return client.createEvent(data);
-	});
+	const postMutation = useMutation(
+		(data: IGooglePostEvent) => {
+			return client.createEvent(data);
+		},
+		{
+			retry(failureCount, error) {
+				if (error instanceof AxiosError && error.response?.status === 403) {
+					return failureCount < 5;
+				}
+				return false;
+			},
+		}
+	);
 
 	return { patchMutation, deleteMutation, postMutation, allMutate };
 };
