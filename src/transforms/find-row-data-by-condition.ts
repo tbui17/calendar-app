@@ -6,9 +6,9 @@ export function findRowDataByCondition(
 	conditionCallback: (event: ICalendarRowDataSchema) => boolean
 ) {
 	const rowData: ICalendarRowDataSchema[] = [];
-	gridRef.api.forEachNode((node) => {
-		if (node.data && conditionCallback(node.data)) {
-			rowData.push(node.data);
+	gridRef.api.forEachNode(({ data }) => {
+		if (data && conditionCallback(data)) {
+			rowData.push(data);
 		}
 	});
 	return rowData;
