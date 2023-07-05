@@ -8,6 +8,36 @@
 
 Feature-rich table allowing users to view and edit their Google Calendar events through the Google Calendar API.
 
+## Feature Video Previews: 
+
+
+
+
+### CRUD
+https://github.com/tbui17/calendar-app/assets/86227911/1bd6b931-fb3a-4d52-b9cf-4c884db7f7ca
+
+
+
+
+### Date Range Validation
+https://github.com/tbui17/calendar-app/assets/86227911/b1e00f0d-2928-4cf2-a948-d3e80e4890b0
+
+
+
+
+### Table Date Validation
+https://github.com/tbui17/calendar-app/assets/86227911/b1539710-6490-4199-af26-7fe08aafe769
+
+
+
+
+### Sort And Filter
+https://github.com/tbui17/calendar-app/assets/86227911/30a8717c-234d-4f69-ac37-c15178f19855
+
+
+
+
+
 
 ## Features:
 
