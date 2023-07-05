@@ -2,8 +2,8 @@ import * as React from "react";
 
 import dayjs, { Dayjs } from "dayjs";
 
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { ICalendarRowDataSchema } from "@/types/row-data-types";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { ICellEditorParams } from "ag-grid-community";
 
 interface DateCellEditorRef {
@@ -11,7 +11,7 @@ interface DateCellEditorRef {
 }
 
 function DatePickerMUI(props: ICellEditorParams<ICalendarRowDataSchema, string>, ref: React.Ref<DateCellEditorRef>) {
-	const [value, setValue] = React.useState<Dayjs | null>(dayjs(props.value));
+	const [value, setValue] = React.useState<Dayjs | null>(dayjs(props.value) || dayjs());
 
 	React.useImperativeHandle(ref, () => {
 		return {
@@ -19,12 +19,13 @@ function DatePickerMUI(props: ICellEditorParams<ICalendarRowDataSchema, string>,
 				if (!value) {
 					throw new Error("unknown error");
 				}
-				return value.toDate();
+
+				return dayjs(value).isValid() ? value.toDate() : dayjs().toDate();
 			},
 		};
 	});
 
-	return <DatePicker value={value} onChange={(newValue) => setValue(newValue)} />;
+	return <DatePicker value={value} onChange={(newValue) => setValue(dayjs(newValue))} />;
 }
 
 export default React.forwardRef(DatePickerMUI);

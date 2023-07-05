@@ -29,7 +29,7 @@ import PickerRendererMUI from "./picker-renderer-mui";
 
 export const PreviewCalendarApp = () => {
 	// hooks
-	const { endDate, startDate, setStart, setEnd, validateDates } = useDateRange();
+	const { endDate, startDate, setStart, setEnd, validateDates, setStartDate, setEndDate } = useDateRange();
 	const { error, refetch, allMutate, dataFromGetCalendar } = useMock();
 	const gridRef = useRef<AgGridReact<ICalendarRowDataSchema>>(null);
 
@@ -46,7 +46,7 @@ export const PreviewCalendarApp = () => {
 	// 3. move all transforms and app logic into hooks. component should only have view logic like buttonHeight.
 	// 4. column defs ok to keep here
 	// 5. disable buttons while updates are pending.
-	// 6. mixing dayjs and date should be fine for now because all the dayjs objects are normalized to date objects by the cell editor but bugs will be encountered if event is created programmatically. refactor any dates into dayjs and check functionality
+	// 6. refactor dayjs validations into one handler
 
 	// handlers
 
@@ -56,7 +56,7 @@ export const PreviewCalendarApp = () => {
 
 	const handleCreateEvent = (dateType: "date" | "dateTime") => {
 		const rowData: ICalendarRowDataSchema = {
-			id: crypto.randomUUID(),
+			id: `TEMPID-${crypto.randomUUID()}`,
 			summary: "",
 			description: "",
 			changeType: "created",
@@ -114,7 +114,6 @@ export const PreviewCalendarApp = () => {
 
 		setDeletedItems([...deletedItems, ...newDeletedDataList]);
 		gridRef.current!.api.applyTransaction({ update: deleted });
-		console.log(deleted);
 		gridRef.current!.api.deselectAll();
 	};
 
@@ -126,10 +125,16 @@ export const PreviewCalendarApp = () => {
 		gridRef.current!.api.onFilterChanged();
 	};
 
-	const handleFetchData = () => {
+	const handleFetchData = (
+		toastSuccessMessage: string = languageService.get("eventsRetrieved"),
+		dismissToast: boolean = true
+	) => {
 		setDeletedItems([]);
-		toast.dismiss(); // this is a workaround. if a pending toast is queued after exceeding toast limit, it will permanently stay in pending
-		const promise = refetch().then((res) => {
+		dismissToast && toast.dismiss(); // this is a workaround. if a pending toast is queued after exceeding toast limit, it will permanently stay in pending
+		const promise = refetch({
+			startDate: dayjs(startDate),
+			endDate: dayjs(endDate),
+		}).then((res) => {
 			if (res.data?.length === 0) {
 				return Promise.reject(new Error("No events found."));
 			}
@@ -138,7 +143,7 @@ export const PreviewCalendarApp = () => {
 
 		toast.promise(promise, {
 			pending: languageService.get("fetchingEvents"),
-			success: languageService.get("eventsRetrieved"),
+			success: toastSuccessMessage,
 			error: {
 				render: (props) => {
 					const err = props.data;
@@ -183,23 +188,34 @@ export const PreviewCalendarApp = () => {
 			return;
 		}
 
-		const conditionList: IChangeTypeSchema[] = ["created", "updated", "deleted"];
+		const conditionList: IChangeTypeSchema[] = ["created", "updated", "deleted", "deletedFromCreated"];
 		const results = findRowDataByCondition(gridRef.current, ({ changeType }) => conditionList.includes(changeType)); // trying to make a function that returns early when any eligible data has been found will cause ag grid to error out
 		if (results.length === 0) {
 			toast.error(languageService.get("noChangedData"));
 			return;
 		}
+
+		if (
+			results.every(({ changeType }) => {
+				// if all changed data is deletedFromCreated, then there is no data to send
+				return changeType === "deletedFromCreated";
+			})
+		) {
+			handleFetchData(languageService.get("updatedEvents"));
+			return;
+		}
 		const res = convertData(gridRef.current);
 
 		allMutate(res).then(({ successes, errors }) => {
+			let message: string = languageService.get("unknownFetchError");
 			if (errors.length) {
-				toast.error("Something went wrong with the request(s).");
+				message = languageService.get("requestsFailed");
 				console.error(errors);
 			} else if (successes.length) {
-				toast.success("Successfully updated events.");
+				message = languageService.get("updatedEvents");
 			}
 			queryClient.invalidateQueries(); // invalidates ALL queries
-			handleFetchData();
+			handleFetchData(message);
 		});
 	};
 
@@ -252,13 +268,19 @@ export const PreviewCalendarApp = () => {
 			editable: true,
 			cellEditor: PickerRendererMUI,
 			onCellValueChanged: (e: NewValueParams<ICalendarRowDataSchema>) => {
+				// https://www.ag-grid.com/react-data-grid/data-update-single-row-cell/
+				// https://www.ag-grid.com/react-data-grid/row-ids/
 				if (e.data.start > e.data.end) {
-					// https://www.ag-grid.com/react-data-grid/data-update-single-row-cell/
-					// https://www.ag-grid.com/react-data-grid/row-ids/
-
 					const node = gridRef.current!.api.getRowNode(e.data.id);
-
 					node?.setDataValue("start", e.data.end);
+				}
+				if (e.data.start < dayjs(MIN_DATE).toDate()) {
+					const node = gridRef.current!.api.getRowNode(e.data.id);
+					node?.setDataValue("start", dayjs(MIN_DATE).toDate());
+				}
+				if (e.data.start > dayjs(MAX_DATE).toDate()) {
+					const node = gridRef.current!.api.getRowNode(e.data.id);
+					node?.setDataValue("start", dayjs(MAX_DATE).toDate());
 				}
 			},
 			resizable: true,
@@ -267,8 +289,22 @@ export const PreviewCalendarApp = () => {
 		{
 			field: "end",
 			sortable: true,
-			filter: "agDateTimeColumnFilter",
+			filter: "agDateColumnFilter",
 			cellRenderer: (params: ICellRendererParams<ICalendarRowDataSchema>) => convertDate(params),
+			onCellValueChanged: (e: NewValueParams<ICalendarRowDataSchema>) => {
+				if (e.data.start > e.data.end) {
+					const node = gridRef.current!.api.getRowNode(e.data.id);
+					node?.setDataValue("end", e.data.start);
+				}
+				if (e.data.end < dayjs(MIN_DATE).toDate()) {
+					const node = gridRef.current!.api.getRowNode(e.data.id);
+					node?.setDataValue("end", dayjs(MIN_DATE).toDate());
+				}
+				if (e.data.end > dayjs(MAX_DATE).toDate()) {
+					const node = gridRef.current!.api.getRowNode(e.data.id);
+					node?.setDataValue("end", dayjs(MAX_DATE).toDate());
+				}
+			},
 			editable: true,
 			cellEditor: PickerRendererMUI,
 			resizable: true,
@@ -277,7 +313,7 @@ export const PreviewCalendarApp = () => {
 		{
 			field: "changeType",
 			filter: true,
-			hide: false,
+			hide: true,
 		},
 	];
 	// https://legacy.reactjs.org/docs/hooks-faq.html#how-can-i-measure-a-dom-node https://stackoverflow.com/questions/60881446/receive-dimensions-of-element-via-getboundingclientrect-in-react https://epicreact.dev/why-you-shouldnt-put-refs-in-a-dependency-array/ https://stackoverflow.com/questions/60476155/is-it-safe-to-use-ref-current-as-useeffects-dependency-when-ref-points-to-a-dom
@@ -305,7 +341,17 @@ export const PreviewCalendarApp = () => {
 								label={languageService.get("from")}
 								maxDate={endDate}
 								minDate={dayjs(MIN_DATE)}
-								onChange={setStart}
+								onChange={(val) => {
+									setStartDate(val || dayjs());
+								}}
+								format="MM/DD/YYYY"
+								slotProps={{
+									textField: {
+										onBlur: (e) => {
+											setStart(dayjs(e.target.value, "MM/DD/YYYY", true));
+										},
+									},
+								}}
 							/>
 						</div>
 						<div>
@@ -314,7 +360,17 @@ export const PreviewCalendarApp = () => {
 								label={languageService.get("to")}
 								maxDate={dayjs(MAX_DATE)}
 								minDate={startDate}
-								onChange={setEnd}
+								format="MM/DD/YYYY"
+								onChange={(val) => {
+									setEndDate(val || dayjs());
+								}}
+								slotProps={{
+									textField: {
+										onBlur: (e) => {
+											setEnd(dayjs(e.target.value, "MM/DD/YYYY", true));
+										},
+									},
+								}}
 								ref={handleRect}
 							/>
 						</div>

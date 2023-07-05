@@ -14,4 +14,6 @@ export const EN_US = {
 	to: "To",
 	restoreDeletedItems: "Restore Deleted Items",
 	noChangedData: "No changed data to send.",
+	requestsFailed: "Something went wrong with the request(s).",
+	updatedEvents: "Successfully updated events.",
 } as const;
