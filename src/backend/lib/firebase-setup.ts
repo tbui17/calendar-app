@@ -10,7 +10,7 @@ import { initializeApp } from "firebase/app";
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-    apiKey: "AIzaSyDFiSrhwjFacTglmoQVn_hdMsLIV_958-o",
+    apiKey: "AIzaSyDFiSrhwjFacTglmoQVn_hdMsLIV_958-o", // this is ok to commit, public API key
     authDomain: "calendar-app-7d35d.firebaseapp.com",
     projectId: "calendar-app-7d35d",
     storageBucket: "calendar-app-7d35d.appspot.com",
