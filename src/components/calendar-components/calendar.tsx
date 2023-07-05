@@ -207,7 +207,7 @@ export const CalendarApp = () => {
 				toast.success("Successfully updated events.");
 			}
 			queryClient.invalidateQueries(); // invalidates ALL queries
-			refetch();
+			handleFetchData();
 		});
 	};
 

@@ -7,7 +7,7 @@ import { calendar_v3 } from "googleapis";
 import { Session } from "next-auth";
 import { useSession } from "next-auth/react";
 
-type IMutationData = {
+export type IMutationData = {
 	deleteData: string[];
 	patchData: IOutboundEvent[];
 	postData: IGooglePostEvent[];
