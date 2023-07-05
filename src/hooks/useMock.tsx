@@ -1,7 +1,8 @@
+import dayjs, { Dayjs } from "dayjs";
+
 import { defaultData } from "@/data/sample-calendar-data";
 import { DateEventParser } from "@/lib/parsers";
 import { IOutboundEvent } from "@/types/event-types";
-import dayjs from "dayjs";
 import { calendar_v3 } from "googleapis";
 import { useState } from "react";
 import { IMutationData } from "./usePatchCalendar";
@@ -37,14 +38,25 @@ const convert = (input: calendar_v3.Schema$Event[]) => {
 };
 const initial = convert(mockDb);
 export const useMock = () => {
-	const refetch = async () => {
+	const refetch = async (props: { startDate: Dayjs; endDate: Dayjs }) => {
+		const data = convert(mockDb);
+		if (props) {
+			const newData = data.filter((event) => {
+				return (
+					dayjs(event.start).toDate() >= props.startDate.toDate() &&
+					dayjs(event.end).toDate() <= props.endDate.toDate()
+				);
+			});
+			setDataFromGetCalendar([...newData]);
+			return { data: [...newData] };
+		}
 		setDataFromGetCalendar(convert(mockDb));
 		return { data: convert(mockDb) };
 	};
 
 	const allMutate = async ({ deleteData, patchData, postData }: IMutationData) => {
 		const postPromises = postData.map(async (item) => {
-			const newItem = { ...item, id: Math.random().toString() };
+			const newItem = { ...item, id: crypto.randomUUID() };
 
 			mockDb.push(newItem);
 			return newItem;
