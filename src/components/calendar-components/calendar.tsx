@@ -128,7 +128,7 @@ export const CalendarApp = () => {
 
 	const handleRestoreDeletedItemsClick = () => {
 		deletedItems.forEach((item) => {
-			gridRef.current!.api.getRowNode(item.id)?.setDataValue("changeType", item.previousChangeType); // small bug, setting changeType to "none" triggers onCellChange
+			gridRef.current!.api.getRowNode(item.id)?.setDataValue("changeType", item.previousChangeType);
 		});
 		setDeletedItems([]);
 		gridRef.current!.api.onFilterChanged();
