@@ -61,6 +61,7 @@ export const CalendarApp = () => {
 	// 9. change date input to use react hook form
 	// 10. create zod schema defining a date range model + validation and reuse in ag grid and react hook form
 	// 11. get react testing library to work with vitest
+	// 12. refactor toast messages, there is also minor bug where updating an event and no events are left in the table causes "no events" toast to appear
 
 	// handlers
 
@@ -139,7 +140,7 @@ export const CalendarApp = () => {
 		gridRef.current!.api.onFilterChanged();
 	};
 
-	const handleFetchData = (
+	const handleFetchData = ( // the args are a bandaid, need to refactor into proper solution
 		toastSuccessMessage: string = languageService.get("eventsRetrieved"),
 		dismissToast: boolean = true
 	) => {
