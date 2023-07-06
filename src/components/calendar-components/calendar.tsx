@@ -4,29 +4,29 @@ import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import "react-toastify/dist/ReactToastify.css";
 
-import { MAX_DATE, MIN_DATE } from "@/configs/date-picker-time-limit-configs";
-import { filterPostPatchDelete, getRowData } from "@/transforms/filterPostPatchDelete";
-import { DeletedItemsTracker, ICalendarRowDataSchema, IChangeTypeSchema } from "@/types/row-data-types";
 import { CellValueChangedEvent, ColDef, GridReadyEvent, ICellRendererParams, NewValueParams } from "ag-grid-community";
+import { DeletedItemsTracker, ICalendarRowDataSchema, IChangeTypeSchema } from "@/types/row-data-types";
 import { FormEvent, useCallback, useRef, useState } from "react";
+import { MAX_DATE, MIN_DATE } from "@/configs/date-picker-time-limit-configs";
 import { ToastContainer, toast } from "react-toastify";
+import { filterPostPatchDelete, getRowData } from "@/transforms/filterPostPatchDelete";
 
-import { useDateRange } from "@/hooks/useDateRange";
-import { useGetCalendar } from "@/hooks/useGetCalendar";
-import { useMutateCalendar } from "@/hooks/usePatchCalendar";
-import { languageService } from "@/lang-service/language-service";
-import { convertDate } from "@/lib/convert-date";
-import { convertContainerData } from "@/transforms/convert-container-data";
-import { findRowDataByCondition } from "@/transforms/find-row-data-by-condition";
+import { AgGridReact } from "ag-grid-react";
+import { AxiosError } from "axios";
+import BaseButton from "../base-button";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { useQueryClient } from "@tanstack/react-query";
-import { AgGridReact } from "ag-grid-react";
-import { AxiosError } from "axios";
-import dayjs from "dayjs";
-import BaseButton from "../base-button";
 import PickerRendererMUI from "./picker-renderer-mui";
+import { convertContainerData } from "@/transforms/convert-container-data";
+import { convertDate } from "@/lib/convert-date";
+import dayjs from "dayjs";
+import { findRowDataByCondition } from "@/transforms/find-row-data-by-condition";
+import { languageService } from "@/lang-service/language-service";
+import { useDateRange } from "@/hooks/useDateRange";
+import { useGetCalendar } from "@/hooks/useGetCalendar";
+import { useMutateCalendar } from "@/hooks/usePatchCalendar";
+import { useQueryClient } from "@tanstack/react-query";
 
 export const CalendarApp = () => {
 	// hooks
@@ -56,6 +56,11 @@ export const CalendarApp = () => {
 	// 4. column defs ok to keep here
 	// 5. disable buttons while updates are pending.
 	// 6. refactor dayjs validations into one handler
+	// 7. move functions interacting with table data into a class
+	// 8. move handlers in grid definition to functions
+	// 9. change date input to use react hook form
+	// 10. create zod schema defining a date range model + validation and reuse in ag grid and react hook form
+	// 11. get react testing library to work with vitest
 
 	// handlers
 
