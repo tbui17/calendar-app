@@ -69,4 +69,6 @@ https://github.com/tbui17/calendar-app/assets/86227911/30a8717c-234d-4f69-ac37-c
     - Save current table filters and sorting to user's profile
     - Right click context menu options
     - Keyboard shortcuts
+- Special actions feature
+    - User-generated templates to add metadata tags in description to trigger Macrodroid mobile app automated actions such as alarms
 - Create Electron desktop app version
