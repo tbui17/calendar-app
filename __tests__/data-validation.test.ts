@@ -5,12 +5,12 @@ import { DateEventParser } from "@/lib/parsers";
 import { WebCalendarClient } from "@/lib/web-calendar-client";
 import dotenv from "dotenv";
 import fs from "fs";
-import { twoGetEvents } from "testData/twoGetEvents";
 
 dotenv.config();
 
 describe("WebCalendarClient.parseEvents", () => {
-	it("should not throw and have truthy value", () => {
+	it("should not throw and have truthy value", async () => {
+		const twoGetEvents: any[] = await fs.promises.readFile(process.env.TWO_GET_EVENTS_PATH as string, "utf-8").then(data => JSON.parse(data))
 		const res = new DateEventParser().parseEvents(twoGetEvents);
 
 		expect(res).toBeTruthy();
