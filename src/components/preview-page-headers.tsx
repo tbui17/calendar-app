@@ -1,6 +1,6 @@
 "use client"
 
-import { ToastContainer, toast } from "react-toastify"
+import { toast } from "react-toastify"
 
 export function PreviewHeaders() {
   return (
@@ -21,7 +21,7 @@ export function PreviewHeaders() {
 				</div>
 
 				
-				<ToastContainer theme="dark" />
+				
 </>
   )
 }
