@@ -29,7 +29,7 @@ import PickerRendererMUI from "./picker-renderer-mui";
 
 export const PreviewCalendarApp = () => {
 	// hooks
-	const { endDate, startDate, setStart, setEnd, validateDates, setStartDate, setEndDate } = useDateRange();
+	const { endDate, startDate, validatedSetStartDate: setStart, validatedSetEndDate: setEnd, validateDates, setStartDate, setEndDate } = useDateRange();
 	const { error, refetch, allMutate, dataFromGetCalendar } = useMock();
 	const gridRef = useRef<AgGridReact<ICalendarRowDataSchema>>(null);
 

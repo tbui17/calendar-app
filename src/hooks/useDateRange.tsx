@@ -1,6 +1,7 @@
 import { MAX_DATE, MIN_DATE } from "@/configs/date-picker-time-limit-configs";
 import { oneMonthAheadYYYYMMDD, oneMonthBehindYYYYMMDD } from "@/lib/date-functions";
 import dayjs, { Dayjs } from "dayjs";
+import { FocusEvent } from "react";
 
 import { useState } from "react";
 
@@ -11,7 +12,7 @@ export const useDateRange = (
 	const [startDate, setStartDate] = useState(initialStartDate);
 	const [endDate, setEndDate] = useState(initialEndDate);
 
-	const setStart = (date: Dayjs | null | undefined) => {
+	const validatedSetStartDate = (date: Dayjs | null | undefined) => {
 		console.log(date);
 		if (!date || !date.isValid()) {
 			setStartDate(dayjs(endDate));
@@ -32,7 +33,15 @@ export const useDateRange = (
 		setStartDate(date);
 	};
 
-	const setEnd = (date: Dayjs | null | undefined) => {
+	const handleStartDateBlur =  (e:FocusEvent<HTMLInputElement>) => {
+		validatedSetStartDate(dayjs(e.target.value, "MM/DD/YYYY", true));
+	}
+
+	const handleEndDateBlur = (e:FocusEvent<HTMLInputElement>) => {
+		validatedSetEndDate(dayjs(e.target.value, "MM/DD/YYYY", true));
+	}
+
+	const validatedSetEndDate = (date: Dayjs | null | undefined) => {
 		if (!date || !date.isValid()) {
 			setEndDate(dayjs(startDate));
 			return;
@@ -83,17 +92,27 @@ export const useDateRange = (
 		}
 		return errors;
 	};
+	
+	const handleStartDateChange = (val:Dayjs | null) => {
+		setStartDate(val || dayjs());
+	}
+
+	const handleEndDateChange = (val:Dayjs | null) => {
+		setEndDate(val || dayjs());
+	}
 
 	return {
 		startDate,
 		endDate,
+		validatedSetStartDate,
+		validatedSetEndDate,
 		setStartDate,
 		setEndDate,
-		setStart,
-		setEnd,
+		handleStartDateBlur,
+		handleEndDateBlur,
 		validateDates,
 		dateValidation,
-		// setStartDateValidated,
-		// setEndDateValidated,
+		handleStartDateChange,
+		handleEndDateChange,
 	};
 };
